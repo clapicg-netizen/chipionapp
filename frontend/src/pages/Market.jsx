@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Phone, Navigation, Search, MapPin, FileText, Video } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import SponsorsSection from "../components/SponsorsSection";
 
 const COMERCIOS_DE_PRUEBA = [
   {
@@ -96,8 +97,13 @@ export default function Market() {
         </div>
       </div>
 
+      {/* CARRUSEL DE PATROCINADORES + GESTIÓN RÁPIDA */}
+      <div className="max-w-lg mx-auto">
+        <SponsorsSection />
+      </div>
+
       {/* Categorías */}
-      <div className="px-4 mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="px-4 mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
         {categorias.map((cat) => (
           <button
             key={cat}
