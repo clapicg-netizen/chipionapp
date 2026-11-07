@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { obtenerRespuestaConso } from '../lib/consoService';
 
 // Coordenadas de las estaciones clave de la línea C-1
@@ -27,11 +27,12 @@ export default function Conso() {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy Conso, tu asistente de Utrera. 👋\nPregúntame por las farmacias de guardia o los horarios de Renfe y te llevaré directamente.'
+      text: '¡Hola! Soy Conso, tu asistente virtual de Utrera. 👋\nPuedes preguntarme por las farmacias de guardia, los horarios de Renfe o cualquier duda sobre nuestra ciudad.'
     }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
   const quickActions = [
     { label: '🏥 Farmacia de Guardia hoy', action: 'farmacia' },
@@ -45,6 +46,14 @@ export default function Conso() {
     '14:20', '14:50', '15:20', '15:50', '16:20', '16:50', '17:20', '17:50',
     '18:20', '18:50', '19:20', '19:50', '20:20', '20:50', '21:30', '22:30'
   ];
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
   const getNextTrain = () => {
     const now = new Date();
@@ -148,7 +157,7 @@ export default function Conso() {
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { sender: 'bot', text: 'Lo siento, ha ocurrido un error al conectar con Conso.' }
+        { sender: 'bot', text: 'Lo siento, ha ocurrido un error al conectar con Conso en este momento.' }
       ]);
     } finally {
       setLoading(false);
@@ -160,7 +169,7 @@ export default function Conso() {
       const userMessage = { sender: 'user', text: '🏥 Farmacia de Guardia hoy' };
       const botMessage = {
         sender: 'bot',
-        text: `🏥 **FARMACIA DE GUARDIA HOY EN UTRERA**\n📅 *MARTES, 13 DE OCTUBRE*\n\n- **Ldo/a. Francisco Javier González Mancha**\n📍 Dirección: Real, 29\n📞 Teléfono: 954861840\n⏰ Horarios: Turno de Guardia 24 horas`,
+        text: `🏥 **FARMACIA DE GUARDIA HOY EN UTRERA**\n\n**Ldo/a. Francisco Javier González Mancha**\n📍 Dirección: Real, 29\n📞 Teléfono: 954861840\n⏰ Horarios: Turno de Guardia 24 horas`,
         buttons: [
           { label: '🗺️ Te llevo a Francisco Javier González Mancha', url: 'https://maps.google.com/?q=Real+29+Utrera' },
           { label: '📞 Llamar a Francisco Javier González Mancha (954861840)', url: 'tel:954861840' }
@@ -173,10 +182,10 @@ export default function Conso() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="flex flex-col h-full min-h-[85vh] bg-slate-50 rounded-2xl shadow-sm overflow-hidden">
       {/* Cabecera */}
       <div className="bg-amber-900 text-white p-4 flex items-center shadow-md">
-        <div className="bg-amber-700 p-2 rounded-full mr-3">🤝</div>
+        <div className="bg-amber-700 p-2.5 rounded-full mr-3 text-lg">🤝</div>
         <div>
           <h1 className="font-bold text-lg">Conso 🤖</h1>
           <p className="text-xs text-amber-200">Asistente Virtual de Utrera</p>
@@ -189,7 +198,7 @@ export default function Conso() {
           <button
             key={idx}
             onClick={() => handleQuickAction(qa.action)}
-            className="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold px-3 py-2 rounded-full whitespace-nowrap shadow-sm border border-amber-300"
+            className="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold px-3 py-2 rounded-full whitespace-nowrap shadow-sm border border-amber-300 transition"
           >
             {qa.label}
           </button>
@@ -197,20 +206,20 @@ export default function Conso() {
       </div>
 
       {/* Área de Chat */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[60vh]">
         {messages.map((msg, index) => (
           <div
             key={index}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+              className={`max-w-[85%] p-3.5 rounded-2xl text-sm ${
                 msg.sender === 'user'
                   ? 'bg-amber-500 text-white rounded-br-none font-medium'
-                  : 'bg-white border text-slate-800 rounded-bl-none shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'
               }`}
             >
-              <p className="whitespace-pre-line">{msg.text}</p>
+              <p className="whitespace-pre-line leading-relaxed">{msg.text}</p>
               {msg.buttons && (
                 <div className="mt-3 space-y-2">
                   {msg.buttons.map((btn, bIdx) => (
@@ -219,7 +228,7 @@ export default function Conso() {
                       href={btn.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-xl text-xs shadow-sm transition"
+                      className="block w-full text-center bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-3 rounded-xl text-xs shadow-sm transition"
                     >
                       {btn.label}
                     </a>
@@ -231,26 +240,28 @@ export default function Conso() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white border p-3 rounded-2xl text-xs text-slate-500 animate-pulse">
-              Conso está consultando tu ubicación y el próximo tren...
+            <div className="bg-white border border-slate-200 p-3 rounded-2xl text-xs text-slate-500 animate-pulse shadow-sm">
+              Conso está procesando tu solicitud...
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Entrada de texto */}
-      <div className="p-3 bg-white border-t flex items-center gap-2">
+      <div className="p-3 bg-white border-t flex items-center gap-2 shadow-inner">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Escribe tu consulta a Conso..."
-          className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="flex-1 border border-slate-300 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
         <button
           onClick={() => handleSendMessage()}
-          className="bg-rose-600 hover:bg-rose-700 text-white p-2.5 rounded-full shadow-md transition"
+          className="bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full shadow-md transition flex items-center justify-center"
+          aria-label="Enviar mensaje"
         >
           ➤
         </button>
