@@ -17,7 +17,7 @@ export default function Conso() {
   const [chat, setChat] = useState([
     {
       origen: 'conso',
-      texto: `¡Hola! Soy Conso, tu asistente virtual de Utrera. 👋\nPuedes preguntarme por las farmacias de guardia de hoy, el tiempo, trenes, aparcamientos o cualquier duda sobre nuestra ciudad.`
+      texto: `¡¡Hola, soy Conso, y en breve seré tu asistente para todo lo que necesites en Utrera. Por ahora, te ofrezco las farmacias de guardia, los horarios de los trenes y los estacionamientos que el ayuntamiento nos facilita a toos. Estoy de mudanza para venirme a Utrera, en breve estoy al 100% con todos!`
     }
   ]);
 
