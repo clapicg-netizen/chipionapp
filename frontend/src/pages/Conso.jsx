@@ -48,20 +48,21 @@ export default function Conso() {
           const { data: fallback } = await supabase
             .from('farmacias_calendario')
             .select('*')
-            .limit(4);
+            .limit(5);
           guardiasHoy = fallback || [];
         }
 
+        // Filtro preciso basado en el cuadrante: la noche especifica 22:00 a 9:30 o turno de noche
         const farmaciasDia = guardiasHoy.filter(f => {
           const h = (f.horario || "").toLowerCase();
           const t = (f.turno || "").toLowerCase();
-          return !h.includes('22:00 a 9:30') && !t.includes('noche');
+          return !h.includes('22:00') && !t.includes('noche');
         });
 
         const farmaciasNoche = guardiasHoy.filter(f => {
           const h = (f.horario || "").toLowerCase();
           const t = (f.turno || "").toLowerCase();
-          return h.includes('22:00 a 9:30') || t.includes('noche');
+          return h.includes('22:00') || t.includes('noche');
         });
 
         return (
