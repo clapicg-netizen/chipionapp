@@ -97,13 +97,13 @@ export default function Market() {
         </div>
       </div>
 
-      {/* CARRUSEL DE PATROCINADORES + GESTIÓN RÁPIDA */}
-      <div className="max-w-lg mx-auto">
+      {/* AQUI ESTÁ EL CARRUSEL DE PATROCINADORES */}
+      <div className="px-4 mt-3">
         <SponsorsSection />
       </div>
 
       {/* Categorías */}
-      <div className="px-4 mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="px-4 mt-3 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
         {categorias.map((cat) => (
           <button
             key={cat}
