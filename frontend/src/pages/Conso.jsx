@@ -23,7 +23,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return Math.round(R * c);
 }
 
-export default function Conso() {
+export default function Conso({ setPaginaActual }) {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
@@ -182,7 +182,7 @@ export default function Conso() {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[85vh] bg-slate-50 rounded-2xl shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full min-h-[85vh] pb-24 bg-slate-50">
       {/* Cabecera */}
       <div className="bg-amber-900 text-white p-4 flex items-center shadow-md">
         <div className="bg-amber-700 p-2.5 rounded-full mr-3 text-lg">🤝</div>
@@ -206,7 +206,7 @@ export default function Conso() {
       </div>
 
       {/* Área de Chat */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[60vh]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -249,7 +249,7 @@ export default function Conso() {
       </div>
 
       {/* Entrada de texto */}
-      <div className="p-3 bg-white border-t flex items-center gap-2 shadow-inner">
+      <div className="p-3 bg-white border-t flex items-center gap-2 shadow-inner mb-16">
         <input
           type="text"
           value={input}
@@ -260,7 +260,7 @@ export default function Conso() {
         />
         <button
           onClick={() => handleSendMessage()}
-          className="bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full shadow-md transition flex items-center justify-center"
+          className="bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full shadow-md transition flex items-center justify-center cursor-pointer"
           aria-label="Enviar mensaje"
         >
           ➤
