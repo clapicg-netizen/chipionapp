@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { obtenerRespuestaConso } from '../lib/consoService';
+import { Pill, Train, Car, Send } from 'lucide-react';
 
 // Coordenadas de las estaciones clave de la línea C-1
 const STATIONS = [
@@ -27,17 +28,12 @@ export default function Conso({ setPaginaActual }) {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy Conso, tu asistente virtual de Utrera. 👋\nPuedes preguntarme por las farmacias de guardia, los horarios de Renfe o cualquier duda sobre nuestra ciudad.'
+      text: '¡Hola! Soy Conso, tu asistente virtual de Utrera. 👋\nPuedes preguntarme por las farmacias de guardia de hoy, el tiempo, trenes, aparcamientos o cualquier duda sobre nuestra ciudad.'
     }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
-
-  const quickActions = [
-    { label: '🏥 Farmacia de Guardia hoy', action: 'farmacia' },
-    { label: '🚆 Próximo Cercanías Renfe C1', action: 'renfe' }
-  ];
 
   // Horarios base de salida hacia Sevilla (Línea C-1)
   const trainSchedules = [
@@ -176,33 +172,35 @@ export default function Conso({ setPaginaActual }) {
         ]
       };
       setMessages((prev) => [...prev, userMessage, botMessage]);
-    } else if (action === 'renfe') {
+    } else if (action === 'trenes') {
       handleRenfeQuery();
+    } else if (action === 'aparcar') {
+      const userMessage = { sender: 'user', text: '🚗 ¿Dónde puedo aparcar en Utrera?' };
+      const botMessage = {
+        sender: 'bot',
+        text: `🚗 **ZONAS DE APARCAMIENTO RECOMENDADAS EN UTRERA**\n\n• **Aparcamiento Pza. de la Moretina**: Céntrico y amplio.\n• **Explanada de la Feria**: Gran capacidad y fácil acceso.\n• **Estación de RENFE**: Ideal para combinaciones con Sevilla.`,
+        buttons: [
+          { label: '🗺️ Ver Aparcamientos en Mapas', url: 'https://maps.google.com/?q=Aparcamiento+Utrera' }
+        ]
+      };
+      setMessages((prev) => [...prev, userMessage, botMessage]);
     }
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[85vh] pb-24 bg-slate-50">
-      {/* Cabecera */}
-      <div className="bg-amber-900 text-white p-4 flex items-center shadow-md">
-        <div className="bg-amber-700 p-2.5 rounded-full mr-3 text-lg">🤝</div>
-        <div>
-          <h1 className="font-bold text-lg">Conso 🤖</h1>
-          <p className="text-xs text-amber-200">Asistente Virtual de Utrera</p>
+    <div className="flex flex-col h-screen bg-slate-50 pb-28">
+      {/* Cabecera Oficial */}
+      <div className="bg-[#781834] text-white p-4 flex items-center shadow-md">
+        <div className="bg-[#9c2446] p-2.5 rounded-xl mr-3 text-xl shadow-inner">
+          🤖
         </div>
-      </div>
-
-      {/* Botones de acción rápida */}
-      <div className="p-3 flex gap-2 overflow-x-auto bg-white border-b">
-        {quickActions.map((qa, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleQuickAction(qa.action)}
-            className="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold px-3 py-2 rounded-full whitespace-nowrap shadow-sm border border-amber-300 transition"
-          >
-            {qa.label}
-          </button>
-        ))}
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-bold text-lg">Conso IA</h1>
+            <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
+          </div>
+          <p className="text-xs text-rose-200">Asistente Oficial de Utrera</p>
+        </div>
       </div>
 
       {/* Área de Chat */}
@@ -213,57 +211,91 @@ export default function Conso({ setPaginaActual }) {
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[85%] p-3.5 rounded-2xl text-sm ${
+              className={`max-w-[85%] p-4 rounded-2xl text-sm ${
                 msg.sender === 'user'
-                  ? 'bg-amber-500 text-white rounded-br-none font-medium'
+                  ? 'bg-[#781834] text-white rounded-br-none font-medium shadow-sm'
                   : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'
-              }`}
+            }`}
             >
-              <p className="whitespace-pre-line leading-relaxed">{msg.text}</p>
-              {msg.buttons && (
-                <div className="mt-3 space-y-2">
-                  {msg.buttons.map((btn, bIdx) => (
-                    <a
-                      key={bIdx}
-                      href={btn.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full text-center bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-3 rounded-xl text-xs shadow-sm transition"
-                    >
-                      {btn.label}
-                    </a>
-                  ))}
+              <div className="flex items-start gap-2.5">
+                {msg.sender === 'bot' && (
+                  <span className="text-amber-500 mt-0.5 text-base">✨</span>
+                )}
+                <div>
+                  <p className="whitespace-pre-line leading-relaxed">{msg.text}</p>
+                  {msg.buttons && (
+                    <div className="mt-3 space-y-2">
+                      {msg.buttons.map((btn, bIdx) => (
+                        <a
+                          key={bIdx}
+                          href={btn.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full text-center bg-[#781834] hover:bg-[#5e1228] text-white font-semibold py-2 px-3 rounded-xl text-xs shadow-sm transition"
+                        >
+                          {btn.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-slate-200 p-3 rounded-2xl text-xs text-slate-500 animate-pulse shadow-sm">
-              Conso está procesando tu solicitud...
+            <div className="bg-white border border-slate-200 p-3 rounded-2xl text-xs text-slate-500 animate-pulse shadow-sm flex items-center gap-2">
+              <span className="text-amber-500">✨</span> Conso está procesando tu solicitud...
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Entrada de texto */}
-      <div className="p-3 bg-white border-t flex items-center gap-2 shadow-inner mb-16">
+      {/* Botones de Acceso Rápido */}
+      <div className="px-4 py-2 grid grid-cols-3 gap-2 bg-slate-50">
+        <button
+          onClick={() => handleQuickAction('farmacia')}
+          className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold py-3 px-2 rounded-2xl border border-rose-200 shadow-sm transition cursor-pointer"
+        >
+          <Pill size={16} className="text-rose-600" />
+          <span>Farmacias</span>
+        </button>
+
+        <button
+          onClick={() => handleQuickAction('trenes')}
+          className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-3 px-2 rounded-2xl border border-slate-200 shadow-sm transition cursor-pointer"
+        >
+          <Train size={16} className="text-slate-600" />
+          <span>Trenes</span>
+        </button>
+
+        <button
+          onClick={() => handleQuickAction('aparcar')}
+          className="flex items-center justify-center gap-2 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-semibold py-3 px-2 rounded-2xl border border-sky-200 shadow-sm transition cursor-pointer"
+        >
+          <Car size={16} className="text-sky-600" />
+          <span>Aparcar</span>
+        </button>
+      </div>
+
+      {/* Input de texto inferior */}
+      <div className="p-3 bg-white border-t border-slate-200 flex items-center gap-2 shadow-lg">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder="Escribe tu consulta a Conso..."
-          className="flex-1 border border-slate-300 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          placeholder="Pregúntale a Conso sobre Utrera, el tiempo, trenes..."
+          className="flex-1 border border-slate-300 rounded-full px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#781834]"
         />
         <button
           onClick={() => handleSendMessage()}
-          className="bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full shadow-md transition flex items-center justify-center cursor-pointer"
-          aria-label="Enviar mensaje"
+          className="bg-[#781834] hover:bg-[#5e1228] text-white px-5 py-3 rounded-full shadow-md transition flex items-center justify-center font-medium text-xs gap-1 cursor-pointer"
         >
-          ➤
+          <span>Enviar</span>
+          <Send size={14} />
         </button>
       </div>
     </div>
