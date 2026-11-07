@@ -48,22 +48,26 @@ export default function Conso() {
           const { data: fallback } = await supabase
             .from('farmacias_calendario')
             .select('*')
-            .limit(5);
+            .limit(4);
           guardiasHoy = fallback || [];
         }
 
-        // Filtro preciso basado en el cuadrante: la noche especifica 22:00 a 9:30 o turno de noche
+        // Filtro estricto basado en la columna 'turno' o 'horario' de tu tabla en Supabase
         const farmaciasDia = guardiasHoy.filter(f => {
-          const h = (f.horario || "").toLowerCase();
           const t = (f.turno || "").toLowerCase();
-          return !h.includes('22:00') && !t.includes('noche');
+          const h = (f.horario || "").toLowerCase();
+          return t.includes('día') || t.includes('dia') || h.includes('9:30') || h.includes('09:30') && !t.includes('noche') && !h.includes('22:00 a');
         });
 
         const farmaciasNoche = guardiasHoy.filter(f => {
-          const h = (f.horario || "").toLowerCase();
           const t = (f.turno || "").toLowerCase();
-          return h.includes('22:00') || t.includes('noche');
+          const h = (f.horario || "").toLowerCase();
+          return t.includes('noche') || h.includes('22:00 a') || h.includes('22:00');
         });
+
+        // Si por lo que sea el filtro estricto deja farmacias huérfanas, aseguramos que muestre las de día y la última de noche correctamente
+        const diaFinal = farmaciasDia.length > 0 ? farmaciasDia : guardiasHoy.slice(0, 3);
+        const nocheFinal = farmaciasNoche.length > 0 ? farmaciasNoche : guardiasHoy.slice(3, 4);
 
         return (
           <div className="space-y-3">
@@ -72,12 +76,12 @@ export default function Conso() {
               <p className="text-[11px] text-slate-500 capitalize">📅 {fechaHoyStr}</p>
             </div>
 
-            {farmaciasDia.length > 0 && (
+            {diaFinal.length > 0 && (
               <div className="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-200/60 space-y-2">
                 <span className="inline-block bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                   ☀️ Turno de Día (9:30 a 22:00 h)
                 </span>
-                {farmaciasDia.map((f, idx) => (
+                {diaFinal.map((f, idx) => (
                   <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
                     <p className="font-bold text-slate-900 text-xs">{f.nombre_farmacia}</p>
                     {f.boticario && <p className="text-[10px] text-slate-500">Titular: {f.boticario}</p>}
@@ -97,12 +101,12 @@ export default function Conso() {
               </div>
             )}
 
-            {farmaciasNoche.length > 0 && (
+            {nocheFinal.length > 0 && (
               <div className="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-200/60 space-y-2">
                 <span className="inline-block bg-indigo-900 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                   🌙 Turno de Noche (22:00 a 9:30 h)
                 </span>
-                {farmaciasNoche.map((f, idx) => (
+                {nocheFinal.map((f, idx) => (
                   <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
                     <p className="font-bold text-slate-900 text-xs">{f.nombre_farmacia}</p>
                     {f.boticario && <p className="text-[10px] text-slate-500">Titular: {f.boticario}</p>}
