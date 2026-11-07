@@ -48,26 +48,18 @@ export default function Conso() {
           const { data: fallback } = await supabase
             .from('farmacias_calendario')
             .select('*')
-            .limit(4);
+            .limit(5);
           guardiasHoy = fallback || [];
         }
 
-        // Filtro estricto basado en la columna 'turno' o 'horario' de tu tabla en Supabase
-        const farmaciasDia = guardiasHoy.filter(f => {
-          const t = (f.turno || "").toLowerCase();
-          const h = (f.horario || "").toLowerCase();
-          return t.includes('día') || t.includes('dia') || h.includes('9:30') || h.includes('09:30') && !t.includes('noche') && !h.includes('22:00 a');
-        });
-
+        // Separación limpia: las de día son las que no son de noche (o las primeras según el cuadrante)
         const farmaciasNoche = guardiasHoy.filter(f => {
           const t = (f.turno || "").toLowerCase();
           const h = (f.horario || "").toLowerCase();
-          return t.includes('noche') || h.includes('22:00 a') || h.includes('22:00');
+          return t.includes('noche') || h.includes('22:00') || h.includes('nocturno');
         });
 
-        // Si por lo que sea el filtro estricto deja farmacias huérfanas, aseguramos que muestre las de día y la última de noche correctamente
-        const diaFinal = farmaciasDia.length > 0 ? farmaciasDia : guardiasHoy.slice(0, 3);
-        const nocheFinal = farmaciasNoche.length > 0 ? farmaciasNoche : guardiasHoy.slice(3, 4);
+        const farmaciasDia = guardiasHoy.filter(f => !farmaciasNoche.includes(f));
 
         return (
           <div className="space-y-3">
@@ -76,12 +68,12 @@ export default function Conso() {
               <p className="text-[11px] text-slate-500 capitalize">📅 {fechaHoyStr}</p>
             </div>
 
-            {diaFinal.length > 0 && (
+            {farmaciasDia.length > 0 && (
               <div className="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-200/60 space-y-2">
                 <span className="inline-block bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                   ☀️ Turno de Día (9:30 a 22:00 h)
                 </span>
-                {diaFinal.map((f, idx) => (
+                {farmaciasDia.map((f, idx) => (
                   <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
                     <p className="font-bold text-slate-900 text-xs">{f.nombre_farmacia}</p>
                     {f.boticario && <p className="text-[10px] text-slate-500">Titular: {f.boticario}</p>}
@@ -101,12 +93,12 @@ export default function Conso() {
               </div>
             )}
 
-            {nocheFinal.length > 0 && (
+            {farmaciasNoche.length > 0 && (
               <div className="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-200/60 space-y-2">
                 <span className="inline-block bg-indigo-900 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                   🌙 Turno de Noche (22:00 a 9:30 h)
                 </span>
-                {nocheFinal.map((f, idx) => (
+                {farmaciasNoche.map((f, idx) => (
                   <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm space-y-1">
                     <p className="font-bold text-slate-900 text-xs">{f.nombre_farmacia}</p>
                     {f.boticario && <p className="text-[10px] text-slate-500">Titular: {f.boticario}</p>}
@@ -189,7 +181,6 @@ export default function Conso() {
       );
     }
 
-    // Consulta directa a la API de Gemini
     try {
       const apiKey = process.env.REACT_APP_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "";
       const promptSistema = "Eres Conso, la asistente virtual oficial de Utrera (Sevilla). Eres amable, cercana, experta en los servicios locales, comercios, farmacias de guardia, horarios de trenes, autobuses, aparcamientos y costumbres de Utrera. Responde de forma útil, concisa, natural y con un toque andaluz cercano.";
@@ -207,9 +198,7 @@ export default function Conso() {
       });
 
       const data = await response.json();
-      const textoRespuesta = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      return textoRespuesta || "Lo siento, vecino, en este momento no puedo conectar con el servicio.";
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Lo siento, vecino, en este momento no puedo conectar con el servicio.";
     } catch (err) {
       console.error("Error al consultar Gemini:", err);
       return "Disculpa, ahora mismo tengo un pequeño problema de conexión con el servicio de inteligencia artificial.";
