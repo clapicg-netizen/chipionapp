@@ -52,14 +52,16 @@ export default function Conso() {
           guardiasHoy = fallback || [];
         }
 
-        // Separación limpia: las de día son las que no son de noche (o las primeras según el cuadrante)
-        const farmaciasNoche = guardiasHoy.filter(f => {
+        // Filtro exacto basado en la columna 'turno' de Supabase (Día / Noche)
+        const farmaciasDia = guardiasHoy.filter(f => {
           const t = (f.turno || "").toLowerCase();
-          const h = (f.horario || "").toLowerCase();
-          return t.includes('noche') || h.includes('22:00') || h.includes('nocturno');
+          return t.includes('día') || t.includes('dia');
         });
 
-        const farmaciasDia = guardiasHoy.filter(f => !farmaciasNoche.includes(f));
+        const farmaciasNoche = guardiasHoy.filter(f => {
+          const t = (f.turno || "").toLowerCase();
+          return t.includes('noche');
+        });
 
         return (
           <div className="space-y-3">
