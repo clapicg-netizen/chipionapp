@@ -21,6 +21,7 @@ export default function TrenesUtrera() {
         }, 400);
     };
 
+    // Motor matemático universal para calcular minutos restantes exactos
     const obtenerMinutosRestantes = (hDest, mDest) => {
         const ahoraH = tiempoActual.getHours();
         const ahoraM = tiempoActual.getMinutes();
@@ -30,7 +31,7 @@ export default function TrenesUtrera() {
         const totalSegundosDestino = hDest * 3600 + mDest * 60;
 
         const diffSegundos = totalSegundosDestino - totalSegundosAhora;
-        if (diffSegundos <= 0) return null;
+        if (diffSegundos <= 0) return null; // El tren ya pasó
         
         const min = Math.floor(diffSegundos / 60);
         return min < 1 ? 1 : min;
@@ -39,18 +40,32 @@ export default function TrenesUtrera() {
     const horaFormateada = tiempoActual.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const segundosRelativo = Math.floor(tiempoActual.getTime() / 1000) % 15;
 
-    const horaActualNum = tiempoActual.getHours() * 60 + tiempoActual.getMinutes();
-    
-    // Lógica horaria adaptada al momento del día (Mañana / Tarde)
-    // Si son más de las 14:00, mostramos el tren de tarde (ej: 18:35), si no, el de las 12:34
-    const esTarde = horaActualNum > 840; // 14:00
-    
-    const hPrincipal = esTarde ? 18 : 12;
-    const mPrincipal = esTarde ? 35 : 34;
-    const horaStrPrincipal = esTarde ? "18:35" : "12:34";
-    const rangoStrPrincipal = esTarde ? "18:35 y 18:40" : "12:34 y 12:39";
+    // --- MATRIZ HORARIA INTELIGENTE DE ÉLITE ---
+    // Definimos el listado maestro de salidas del día hacia Sevilla/Lora para que el sistema elija siempre la vigente
+    const salidasSevilla = [
+        { h: 7, m: 10, destino: "Santa Justa", via: "Vía 3" },
+        { h: 7, m: 45, destino: "Lora del Río", via: "Vía 1" },
+        { h: 8, m: 10, destino: "Santa Justa", via: "Vía 3" },
+        { h: 8, m: 18, destino: "Lora del Río", via: "Vía 1" },
+        { h: 9, m: 0,  destino: "Santa Justa", via: "Vía 3" },
+        { h: 10, m: 15, destino: "Santa Justa", via: "Vía 3" },
+        { h: 12, m: 34, destino: "Lora del Río", via: "Vía 1" },
+        { h: 14, m: 20, destino: "Santa Justa", via: "Vía 3" },
+        { h: 16, m: 10, destino: "Lora del Río", via: "Vía 1" },
+        { h: 18, m: 35, destino: "Lora del Río", via: "Vía 3" },
+        { h: 21, m: 0,  destino: "Santa Justa", via: "Vía 3" }
+    ];
 
-    const minCalculados = obtenerMinutosRestantes(hPrincipal, mPrincipal) || 15;
+    // Buscamos automáticamente el primer tren cuya hora de salida sea posterior a la hora actual del sistema
+    const ahoraMinutosTotales = tiempoActual.getHours() * 60 + tiempoActual.getMinutes();
+    
+    const trenesFuturos = salidasSevilla.filter(t => (t.h * 60 + t.m) > ahoraMinutosTotales);
+    const proximoTren = trenesFuturos.length > 0 ? trenesFuturos[0] : salidasSevilla[0];
+    const siguientesTrenes = trenesFuturos.slice(1, 4);
+
+    const minCalculados = obtenerMinutosRestantes(proximoTren.h, proximoTren.m) || 1;
+    const horaStrPrincipal = `${String(proximoTren.h).padStart(2, '0')}:${String(proximoTren.m).padStart(2, '0')}`;
+    const rangoStrPrincipal = `${horaStrPrincipal} y ${String(proximoTren.h).padStart(2, '0')}:${String(proximoTren.m + 5).padStart(2, '0')}`;
 
     const compartirWhatsApp = (tipo, destino, hora, detalle) => {
         const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. \n\n📍 Consultado en Utrerapp Live: https://utrerapp.com`);
@@ -76,7 +91,7 @@ export default function TrenesUtrera() {
 
             {/* Tarjeta Desplegable de la Alerta */}
             {alertaAbierta && (
-                <div className="bg-amber-50/90 border border-amber-200 p-4 rounded-2xl shadow-inner text-xs text-amber-900 space-y-2 animate-fadeIn">
+                <div className="bg-amber-50/90 border border-amber-200 p-4 rounded-2xl shadow-inner text-xs text-amber-900 space-y-2">
                     <p className="font-bold">Información oficial de servicio:</p>
                     <p className="leading-relaxed text-amber-800">
                         Con motivo de la huelga de 24 horas convocada el día 10 de noviembre y parcial el día 12 de noviembre por el sindicato de maquinistas SEMAF, el servicio podría verse afectado. Consulta toda la información en nuestros canales oficiales. Gracias por tu comprensión.
@@ -139,8 +154,8 @@ export default function TrenesUtrera() {
                         <div className="bg-sky-50/60 rounded-2xl p-5 border border-sky-200/80 mb-4 shadow-sm">
                             <div className="flex justify-between items-start mb-3">
                                 <div>
-                                    <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
-                                    <h4 className="text-xl font-black text-slate-900">Lora del Río</h4>
+                                    <span className="text-xs text-slate-500 font-semibold block">Próximo servicio automático</span>
+                                    <h4 className="text-xl font-black text-slate-900">{proximoTren.destino}</h4>
                                     <span className="text-xs text-slate-600 font-medium">el de las {horaStrPrincipal}</span>
                                 </div>
                                 <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">A su hora</span>
@@ -178,9 +193,9 @@ export default function TrenesUtrera() {
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
-                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">🚆 Vía 3</span>
+                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">🚆 {proximoTren.via}</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("hacia", "Lora del Río", horaStrPrincipal, "Sale en breve")}
+                                    onClick={() => compartirWhatsApp("hacia", proximoTren.destino, horaStrPrincipal, "Sale en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisa a quien vaya contigo
@@ -188,26 +203,22 @@ export default function TrenesUtrera() {
                             </div>
                         </div>
 
-                        {/* Después dinámico */}
+                        {/* Después dinámico automático */}
                         <div className="mt-4 pt-3 border-t border-slate-100">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Después</span>
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 transition text-xs border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <span className="font-extrabold text-slate-900 text-sm">{esTarde ? "19:10" : "12:14"}</span>
-                                        <span className="bg-slate-900 text-white px-2 py-0.5 rounded text-[10px] font-bold">MD</span>
-                                        <span className="font-bold text-slate-850">Jaén / Sevilla</span>
+                                {siguientesTrenes.map((t, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 transition text-xs border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-extrabold text-slate-900 text-sm">
+                                                {String(t.h).padStart(2, '0')}:{String(t.m).padStart(2, '0')}
+                                            </span>
+                                            <span className="bg-sky-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">C1</span>
+                                            <span className="font-bold text-slate-800">{t.destino}</span>
+                                        </div>
+                                        <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">Previsto</span>
                                     </div>
-                                    <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">A su hora</span>
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 transition text-xs border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <span className="font-extrabold text-slate-900 text-sm">{esTarde ? "19:35" : "12:34"}</span>
-                                        <span className="bg-sky-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">C1</span>
-                                        <span className="font-bold text-slate-850">Lora del Río</span>
-                                    </div>
-                                    <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">Previsto</span>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -227,7 +238,7 @@ export default function TrenesUtrera() {
                                 <div>
                                     <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
                                     <h4 className="text-xl font-black text-slate-900">Cádiz</h4>
-                                    <span className="text-xs text-slate-600 font-medium">el de las {esTarde ? "19:20" : "13:20"}</span>
+                                    <span className="text-xs text-slate-600 font-medium">el de las 19:20</span>
                                 </div>
                                 <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">Previsto</span>
                             </div>
@@ -235,13 +246,13 @@ export default function TrenesUtrera() {
                             <div className="my-3 py-3 border-y border-blue-200/60 flex items-baseline justify-between">
                                 <div>
                                     <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                                        {obtenerMinutosRestantes(esTarde ? 19 : 13, esTarde ? 20 : 20) || "35"}
+                                        {obtenerMinutosRestantes(19, 20) || "45"}
                                     </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[11px] text-slate-500 block font-medium">Hora estimada</span>
-                                    <span className="text-sm font-bold text-blue-900">{esTarde ? "19:20" : "13:20"}</span>
+                                    <span className="text-sm font-bold text-blue-900">19:20</span>
                                 </div>
                             </div>
 
@@ -265,7 +276,7 @@ export default function TrenesUtrera() {
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">Media Distancia</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("hacia", "Cádiz", esTarde ? "19:20" : "13:20", "Llega en breve")}
+                                    onClick={() => compartirWhatsApp("hacia", "Cádiz", "19:20", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisar
@@ -301,22 +312,22 @@ export default function TrenesUtrera() {
                             <div className="my-3 py-3 border-y border-emerald-200/60 flex items-baseline justify-between">
                                 <div>
                                     <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                                        {obtenerMinutosRestantes(esTarde ? 19 : 11, esTarde ? 50 : 58) || "12"}
+                                        {obtenerMinutosRestantes(19, 50) || "25"}
                                     </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[11px] text-slate-500 block font-medium">Llega a Utrera a las</span>
-                                    <span className="text-sm font-bold text-emerald-900">{esTarde ? "19:50" : "11:58"}</span>
+                                    <span className="text-sm font-bold text-emerald-900">19:50</span>
                                 </div>
                             </div>
 
                             <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-emerald-100">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Paso por Sevilla:</span>
                                 <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
-                                    <span>Santa Justa ({esTarde ? "19:30" : "11:38"})</span>
-                                    <span>San Bernardo ({esTarde ? "19:33" : "11:41"})</span>
-                                    <span className="text-emerald-700 font-extrabold">Virgen del Rocío ({esTarde ? "19:36" : "11:44"})</span>
+                                    <span>Santa Justa (19:30)</span>
+                                    <span>San Bernardo (19:33)</span>
+                                    <span className="text-emerald-700 font-extrabold">Virgen del Rocío (19:36)</span>
                                 </div>
                                 <div className="relative flex items-center justify-between px-3 pt-1">
                                     <div className="absolute left-4 right-4 h-0.5 bg-emerald-200 top-1/2 -translate-y-1/2 z-0"></div>
@@ -329,7 +340,7 @@ export default function TrenesUtrera() {
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-bold">🚆 Vía 2</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", esTarde ? "19:50" : "11:58", "Llega en breve")}
+                                    onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", "19:50", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisa a quien vaya contigo
