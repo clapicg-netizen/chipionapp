@@ -83,7 +83,7 @@ export default function TrenesUtrera() {
     const minRestantesLlegada = obtenerMinutosRestantes(proximaLlegada.h, proximaLlegada.m) || 1;
 
     const compartirWhatsApp = (tipo, destino, hora, detalle) => {
-        const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. \n\n📍 Consultado en Utrerapp Live: https://utrerapp.com`);
+        const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. \n\n📍 Consultado en Utrerapp Live: https://utrerapp.com/?vista=trenes`);
         window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
     };
 
