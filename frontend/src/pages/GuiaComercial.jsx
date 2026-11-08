@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Phone, Navigation, Globe, Search, MapPin, ExternalLink, Image, FileText, Video, Zap, Sparkles, ShoppingBag, Utensils, Clock, CreditCard, Bike, Plus, Minus, ShoppingCart, ShieldCheck, Home, Bed, Bath } from "lucide-react";
 import { obtenerComercios, actualizarComercio, crearComercio, subirArchivoComercio } from "../lib/comerciosService";
+import { supabase } from "../lib/supabaseClient";
 import FichaInmobiliaria from "./FichaInmobiliaria";
 import FichaComida from "./FichaComida";
 import LandingComercio from "../components/LandingComercio";
@@ -23,6 +24,14 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
   const [mensajeAdmin, setMensajeAdmin] = useState({ tipo: "", texto: "" });
   const [guardando, setGuardando] = useState(false);
   const [subiendo, setSubiendo] = useState(false);
+
+  // Estados para Patrocinadores de la Guía
+  const [sponsors, setSponsors] = useState([]);
+  const [currentIndexSponsor, setCurrentIndexSponsor] = useState(0);
+  const [showAdminSponsors, setShowAdminSponsors] = useState(false);
+  const [sponsorName, setSponsorName] = useState('');
+  const [sponsorLogo, setSponsorLogo] = useState('');
+  const [sponsorLink, setSponsorLink] = useState('');
 
   // Formulario de edición/creación completo con Redes Sociales, Galería y Datos Especiales (JSON)
   const [formData, setFormData] = useState({
@@ -58,6 +67,7 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
 
   useEffect(() => {
     cargarComercios();
+    cargarSponsors();
   }, []);
 
   const cargarComercios = async () => {
@@ -69,6 +79,52 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
       console.error("Error al cargar los comercios:", error.message);
     } finally {
       setCargando(false);
+    }
+  };
+
+  const cargarSponsors = async () => {
+    try {
+      const { data, error } = await supabase.from('sponsors').select('*').eq('active', true);
+      if (!error && data) {
+        setSponsors(data);
+      }
+    } catch (e) {
+      console.log("Tabla sponsors pendiente en Supabase");
+    }
+  };
+
+  // Rotación automática del carrusel de patrocinadores cada 3 segundos
+  useEffect(() => {
+    if (sponsors.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndexSponsor((prev) => (prev + 1) % sponsors.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [sponsors.length]);
+
+  const handleAddSponsor = async (e) => {
+    e.preventDefault();
+    if (!sponsorName || !sponsorLogo) return;
+
+    const { error } = await supabase.from('sponsors').insert([
+      { name: sponsorName, logo_url: sponsorLogo, link: sponsorLink, active: true }
+    ]);
+
+    if (!error) {
+      setSponsorName('');
+      setSponsorLogo('');
+      setSponsorLink('');
+      cargarSponsors();
+      alert('¡Patrocinador añadido con éxito!');
+    } else {
+      alert('Error al añadir. Comprueba la tabla sponsors en Supabase.');
+    }
+  };
+
+  const handleDeleteSponsor = async (id) => {
+    if (confirm('¿Seguro que quieres borrar este patrocinador?')) {
+      const { error } = await supabase.from('sponsors').delete().eq('id', id);
+      if (!error) cargarSponsors();
     }
   };
 
@@ -219,6 +275,8 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
     }
   };
 
+  const currentSponsor = sponsors.length > 0 ? sponsors[currentIndexSponsor] : null;
+
   return (
     <div className="min-h-screen bg-slate-50 pb-28 text-slate-800 font-sans">
       
@@ -251,7 +309,116 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 pt-5 space-y-6">
+      <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
+
+        {/* MÓDULO DE PATROCINADORES DE LA GUÍA */}
+        <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
+              ⭐ Patrocinadores Oficiales
+            </span>
+            <button 
+              onClick={() => setShowAdminSponsors(!showAdminSponsors)}
+              className={`px-2 py-0.5 rounded text-[10px] font-bold text-white transition-colors ${showAdminSponsors ? 'bg-slate-700' : 'bg-red-700 hover:bg-red-800'}`}
+            >
+              {showAdminSponsors ? 'Ver Carrusel' : '⚙️ Gestionar'}
+            </button>
+          </div>
+
+          {/* Carrusel Activo */}
+          {sponsors.length > 0 && !showAdminSponsors && (
+            <div className="bg-gradient-to-r from-amber-50 to-red-50 border border-amber-200/60 rounded-xl p-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img 
+                  src={currentSponsor.logo_url} 
+                  alt={currentSponsor.name} 
+                  className="w-10 h-10 object-cover rounded-lg border border-slate-200 flex-shrink-0" 
+                />
+                <div className="min-w-0">
+                  <h4 className="font-bold text-slate-900 text-xs truncate">{currentSponsor.name}</h4>
+                  <span className="text-[9px] text-amber-700 font-medium">Patrocinador ({currentIndexSponsor + 1}/{sponsors.length})</span>
+                </div>
+              </div>
+              {currentSponsor.link && (
+                <a 
+                  href={currentSponsor.link} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex-shrink-0 ml-2"
+                >
+                  Visitar
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Si no hay patrocinadores */}
+          {sponsors.length === 0 && !showAdminSponsors && (
+            <div className="text-center py-2">
+              <p className="text-[11px] text-slate-500 mb-1">No hay patrocinadores añadidos todavía.</p>
+              <button 
+                onClick={() => setShowAdminSponsors(true)}
+                className="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold"
+              >
+                + Añadir el primero
+              </button>
+            </div>
+          )}
+
+          {/* Panel de Gestión Rápida de Patrocinadores */}
+          {showAdminSponsors && (
+            <div className="pt-2 border-t border-slate-100 space-y-2 mt-2">
+              <h3 className="text-[11px] font-bold text-slate-900 uppercase">Panel Rápido Patrocinadores</h3>
+              <form onSubmit={handleAddSponsor} className="space-y-1.5">
+                <input 
+                  type="text" 
+                  placeholder="Nombre" 
+                  value={sponsorName} 
+                  onChange={(e) => setSponsorName(e.target.value)}
+                  className="w-full p-1.5 text-xs rounded-lg border border-slate-300" 
+                  required 
+                />
+                <input 
+                  type="text" 
+                  placeholder="URL Logo" 
+                  value={sponsorLogo} 
+                  onChange={(e) => setSponsorLogo(e.target.value)}
+                  className="w-full p-1.5 text-xs rounded-lg border border-slate-300" 
+                  required 
+                />
+                <input 
+                  type="text" 
+                  placeholder="Enlace web (opcional)" 
+                  value={sponsorLink} 
+                  onChange={(e) => setSponsorLink(e.target.value)}
+                  className="w-full p-1.5 text-xs rounded-lg border border-slate-300" 
+                />
+                <button 
+                  type="submit" 
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-[11px] font-bold shadow-sm"
+                >
+                  + Guardar y Publicar
+                </button>
+              </form>
+
+              {sponsors.length > 0 && (
+                <div className="max-h-28 overflow-y-auto space-y-1 pt-1 border-t">
+                  {sponsors.map((s) => (
+                    <div key={s.id} className="flex justify-between items-center bg-slate-50 px-2 py-1 rounded border">
+                      <span className="text-[11px] font-medium truncate max-w-[150px]">{s.name}</span>
+                      <button 
+                        onClick={() => handleDeleteSponsor(s.id)}
+                        className="bg-red-500 text-white px-1.5 py-0.5 rounded text-[9px] font-bold"
+                      >
+                        Borrar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* CATEGORÍAS */}
         <div className="space-y-2">
