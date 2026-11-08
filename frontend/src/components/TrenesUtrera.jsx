@@ -20,7 +20,6 @@ export default function TrenesUtrera() {
         }, 400);
     };
 
-    // Función matemática robusta para calcular los minutos restantes
     const obtenerMinutosRestantes = (hDest, mDest) => {
         const ahoraH = tiempoActual.getHours();
         const ahoraM = tiempoActual.getMinutes();
@@ -30,7 +29,7 @@ export default function TrenesUtrera() {
         const totalSegundosDestino = hDest * 3600 + mDest * 60;
 
         const diffSegundos = totalSegundosDestino - totalSegundosAhora;
-        if (diffSegundos <= 0) return null; // Ya pasó
+        if (diffSegundos <= 0) return null;
         
         const min = Math.floor(diffSegundos / 60);
         return min < 1 ? 1 : min;
@@ -40,7 +39,7 @@ export default function TrenesUtrera() {
     const segundosRelativo = Math.floor(tiempoActual.getTime() / 1000) % 15;
     const minutosTotalesAhora = tiempoActual.getHours() * 60 + tiempoActual.getMinutes();
 
-    // --- LISTA MAESTRA DE SALIDAS HACIA SEVILLA (Ordenadas cronológicamente) ---
+    // Lista maestra de salidas Hacia Sevilla
     const listaSalidasSevilla = [
         { hora: "08:10", destino: "Santa Justa", via: "Vía 3", tipo: "Cercanías C1", h: 8, m: 10 },
         { hora: "08:18", destino: "Lora del Río (C1)", via: "Vía 1", tipo: "Cercanías C1", h: 8, m: 18 },
@@ -49,13 +48,12 @@ export default function TrenesUtrera() {
         { hora: "10:15", destino: "Santa Justa", via: "Vía 3", tipo: "Cercanías C1", h: 10, m: 15 },
     ];
 
-    // Filtramos dinámicamente los trenes que aún no han salido
     const trenesFuturosSevilla = listaSalidasSevilla.filter(t => (t.h * 60 + t.m) >= minutosTotalesAhora);
     const proximoSevilla = trenesFuturosSevilla[0] || listaSalidasSevilla[listaSalidasSevilla.length - 1];
     const siguientesSevilla = trenesFuturosSevilla.slice(1, 3);
     const minRestantesSevilla = obtenerMinutosRestantes(proximoSevilla.h, proximoSevilla.m) || 1;
 
-    // --- LISTA MAESTRA HACIA CÁDIZ / LEBRIJA ---
+    // Lista maestra Hacia Cádiz / Lebrija
     const listaSalidasCadiz = [
         { hora: "08:58", destino: "Cádiz", via: "Vía 2", tipo: "Media Distancia", h: 8, m: 58 },
         { hora: "10:23", destino: "Cádiz", via: "Vía 2", tipo: "Media Distancia", h: 10, m: 23 },
@@ -168,7 +166,7 @@ export default function TrenesUtrera() {
                         </div>
 
                         {/* Trenes Siguientes */}
-                        <div className="space-y-2">
+                        <div className="space-y-2 mb-6">
                             {siguientesSevilla.map((t, idx) => (
                                 <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
                                     <div className="flex items-center gap-3">
@@ -182,49 +180,42 @@ export default function TrenesUtrera() {
                                 </div>
                             ))}
                         </div>
-                    </div>
 
-                    {/* SECCIÓN: HACIA LEBRIJA Y CÁDIZ */}
-                    <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-2.5 h-full bg-blue-600"></div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                                <span>📍 Hacia Lebrija y Cádiz</span>
-                            </h3>
-                            <span className="text-xs bg-blue-100 text-blue-900 px-3 py-1 rounded-full font-bold">Media Distancia / C1</span>
-                        </div>
-
-                        <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-200/80 mb-4 shadow-sm">
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
-                                    <h4 className="text-xl font-black text-slate-900">{proximoCadiz.destino}</h4>
-                                    <span className="text-xs text-slate-600 font-medium">el de las {proximoCadiz.hora}</span>
+                        {/* BLOQUE NUEVO: EN EL MAPA (ESTILO ÉLITE) */}
+                        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                            <h4 className="font-extrabold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
+                                🗺️ En el mapa
+                            </h4>
+                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                                {/* Esquema visual de la línea C1 */}
+                                <div className="relative w-full sm:w-1/2 h-44 bg-white rounded-xl border border-slate-200 p-3 flex flex-col justify-between shadow-inner">
+                                    <div className="absolute left-1/2 top-4 bottom-4 w-1 bg-blue-500 -translate-x-1/2 rounded-full"></div>
+                                    
+                                    <div className="relative z-10 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span>Santa Justa</span>
+                                        <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                    </div>
+                                    <div className="relative z-10 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span>Dos Hermanas</span>
+                                        <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                    </div>
+                                    <div className="relative z-10 flex items-center justify-between text-[11px] font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                        <span>Utrera (Estación)</span>
+                                        <div className="w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-white shadow animate-pulse"></div>
+                                    </div>
+                                    <div className="relative z-10 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span>Lebrija</span>
+                                        <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                    </div>
                                 </div>
-                                <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">A su hora</span>
-                            </div>
 
-                            <div className="my-3 py-3 border-y border-blue-200/60 flex items-baseline justify-between">
-                                <div>
-                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                                        {minRestantesCadiz !== null ? `${minRestantesCadiz}` : "Ya"}
-                                    </span>
-                                    <span className="text-sm font-bold text-slate-600 ml-1">{minRestantesCadiz !== null ? "min" : "en Utrera"}</span>
+                                <div className="w-full sm:w-1/2 text-xs space-y-2">
+                                    <div className="bg-amber-100/70 p-3 rounded-xl border border-amber-200">
+                                        <span className="font-black text-amber-900 block mb-0.5">🚆 {proximoSevilla.hora} a {proximoSevilla.destino}</span>
+                                        <p className="text-slate-700 font-medium">🟡 Tu próximo tren está estacionado en Utrera listo para salir.</p>
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 font-semibold">📍 7 trenes más activos en la línea C1 en este momento.</p>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[11px] text-slate-500 block font-medium">Hora estimada</span>
-                                    <span className="text-sm font-bold text-blue-900">{proximoCadiz.hora}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2">
-                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">Media Distancia</span>
-                                <button 
-                                    onClick={() => compartirWhatsApp("hacia", proximoCadiz.destino, proximoCadiz.hora, "En servicio")}
-                                    className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
-                                >
-                                    💬 Avisar
-                                </button>
                             </div>
                         </div>
                     </div>
