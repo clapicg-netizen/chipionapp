@@ -1,4 +1,4 @@
-// src/pages/Market.jsx (Versión Autocontenida con Patrocinadores)
+// src/pages/Market.jsx
 import React, { useState, useEffect } from "react";
 import { Phone, Navigation, Search, MapPin, FileText, Video } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -33,7 +33,7 @@ export default function Market() {
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(false);
 
-  // Estados para Patrocinadores
+  // Estados específicos para los Patrocinadores de la Guía
   const [sponsors, setSponsors] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAdminSponsors, setShowAdminSponsors] = useState(false);
@@ -43,6 +43,7 @@ export default function Market() {
 
   const categorias = ["Todos", "Hostelería", "Comercio", "Servicios", "Salud y Belleza", "Inmobiliaria (Especial)", "Comida (Especial)"];
 
+  // Cargar comercios
   useEffect(() => {
     async function fetchData() {
       setCargando(true);
@@ -72,7 +73,7 @@ export default function Market() {
     fetchData();
   }, [categoriaSel]);
 
-  // Cargar y rotar patrocinadores
+  // Cargar Patrocinadores desde Supabase
   useEffect(() => {
     fetchSponsors();
   }, []);
@@ -86,6 +87,7 @@ export default function Market() {
     }
   };
 
+  // Rotación automática cada 3 segundos
   useEffect(() => {
     if (sponsors.length <= 1) return;
     const interval = setInterval(() => {
@@ -101,14 +103,14 @@ export default function Market() {
     if (!error) {
       setSponsorName(''); setSponsorLogo(''); setSponsorLink('');
       fetchSponsors();
-      alert('¡Patrocinador añadido!');
+      alert('¡Patrocinador añadido con éxito!');
     } else {
-      alert('Error al añadir. ¿Has creado la tabla sponsors en Supabase?');
+      alert('Error al añadir. Asegúrate de haber creado la tabla sponsors en Supabase.');
     }
   };
 
   const handleDeleteSponsor = async (id) => {
-    if (confirm('¿Borrar patrocinador?')) {
+    if (confirm('¿Seguro que quieres borrar este patrocinador?')) {
       const { error } = await supabase.from('sponsors').delete().eq('id', id);
       if (!error) fetchSponsors();
     }
@@ -148,55 +150,61 @@ export default function Market() {
         </div>
       </div>
 
-      {/* CARRUSEL Y GESTIÓN DE PATROCINADORES */}
+      {/* CARRUSEL DE PATROCINADORES EXCLUSIVO DE LA GUÍA COMERCIAL */}
       <div className="px-4 mt-3 max-w-lg mx-auto">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500">⭐ Patrocinadores</span>
+          <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500 flex items-center gap-1">
+            ⭐ Patrocinadores de la Guía
+          </span>
           <button 
             onClick={() => setShowAdminSponsors(!showAdminSponsors)}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-bold text-white ${showAdminSponsors ? 'bg-slate-700' : 'bg-red-700'}`}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-bold text-white transition-colors ${showAdminSponsors ? 'bg-slate-700' : 'bg-red-700 hover:bg-red-800'}`}
           >
             {showAdminSponsors ? 'Ver Carrusel' : '⚙️ Gestionar'}
           </button>
         </div>
 
+        {/* Carrusel Rotativo */}
         {sponsors.length > 0 && !showAdminSponsors && (
-          <div className="bg-gradient-to-br from-red-50 to-white border border-red-200 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+          <div className="bg-gradient-to-br from-amber-50 via-white to-red-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3 min-w-0">
-              <img src={currentSponsor.logo_url} alt={currentSponsor.name} className="w-12 h-12 object-cover rounded-xl border border-slate-200 flex-shrink-0" />
+              <img src={currentSponsor.logo_url} alt={currentSponsor.name} className="w-12 h-12 object-cover rounded-xl border border-slate-200 flex-shrink-0 shadow-inner" />
               <div className="min-w-0">
                 <h4 className="font-bold text-slate-900 text-sm truncate">{currentSponsor.name}</h4>
-                <span className="text-[10px] text-slate-400">Patrocinador ({currentIndex + 1}/{sponsors.length})</span>
+                <span className="text-[10px] text-amber-700 font-semibold">Patrocinador oficial ({currentIndex + 1}/{sponsors.length})</span>
               </div>
             </div>
             {currentSponsor.link && (
-              <a href={currentSponsor.link} target="_blank" rel="noreferrer" className="bg-red-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 ml-2">Visitar</a>
+              <a href={currentSponsor.link} target="_blank" rel="noreferrer" className="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 ml-2 shadow">Visitar</a>
             )}
           </div>
         )}
 
+        {/* Si no hay patrocinadores todavía */}
         {sponsors.length === 0 && !showAdminSponsors && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-3 text-center">
-            <p className="text-xs text-slate-500 mb-1">No hay patrocinadores todavía.</p>
-            <button onClick={() => setShowAdminSponsors(true)} className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold">+ Añadir el primero</button>
+            <p className="text-xs text-slate-500 mb-1">No hay patrocinadores en la guía todavía.</p>
+            <button onClick={() => setShowAdminSponsors(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-sm">+ Añadir el primero</button>
           </div>
         )}
 
+        {/* Panel de Gestión Rápida */}
         {showAdminSponsors && (
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-md mt-1">
-            <h3 className="text-xs font-bold text-slate-900 mb-2 uppercase">Panel Rápido Patrocinadores</h3>
+            <h3 className="text-xs font-bold text-slate-900 mb-2 uppercase tracking-wide">Panel de Patrocinadores (Guía)</h3>
             <form onSubmit={handleAddSponsor} className="flex flex-col gap-2 mb-3">
-              <input type="text" placeholder="Nombre" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300" required />
-              <input type="text" placeholder="URL Logo" value={sponsorLogo} onChange={(e) => setSponsorLogo(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300" required />
-              <input type="text" placeholder="Enlace web (opcional)" value={sponsorLink} onChange={(e) => setSponsorLink(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300" />
-              <button type="submit" className="bg-emerald-600 text-white py-2 rounded-xl text-xs font-bold">+ Guardar Patrocinador</button>
+              <input type="text" placeholder="Nombre del Patrocinador" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-red-700" required />
+              <input type="text" placeholder="URL del Logo (ej: https://...)" value={sponsorLogo} onChange={(e) => setSponsorLogo(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-red-700" required />
+              <input type="text" placeholder="Enlace web (opcional)" value={sponsorLink} onChange={(e) => setSponsorLink(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-red-700" />
+              <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold shadow-sm">+ Guardar Patrocinador</button>
             </form>
             {sponsors.length > 0 && (
               <div className="max-h-36 overflow-y-auto space-y-1.5 pt-1 border-t border-slate-100">
+                <span className="text-[10px] text-slate-400 font-bold">Listado actual:</span>
                 {sponsors.map((s) => (
                   <div key={s.id} className="flex justify-between items-center bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
                     <span className="text-xs font-medium truncate max-w-[180px]">{s.name}</span>
-                    <button onClick={() => handleDeleteSponsor(s.id)} className="bg-red-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-bold">Borrar</button>
+                    <button onClick={() => handleDeleteSponsor(s.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 rounded-lg text-[10px] font-bold">Borrar</button>
                   </div>
                 ))}
               </div>
@@ -227,9 +235,9 @@ export default function Market() {
       {/* Lista de Comercios */}
       <div className="px-4 mt-4 space-y-4 max-w-lg mx-auto">
         {cargando ? (
-          <div className="text-center py-12"><p className="text-slate-500 text-xs font-bold animate-pulse">Cargando...</p></div>
+          <div className="text-center py-12"><p className="text-slate-500 text-xs font-bold animate-pulse">Cargando comercios...</p></div>
         ) : comerciosFiltrados.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><p className="text-slate-500 font-medium text-sm">No hay comercios.</p></div>
+          <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"><p className="text-slate-500 font-medium text-sm">No hay comercios en esta categoría.</p></div>
         ) : (
           comerciosFiltrados.map((comercio) => (
             <div key={comercio.id || comercio.nombre} onClick={() => setComercioSel(comercio)} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
