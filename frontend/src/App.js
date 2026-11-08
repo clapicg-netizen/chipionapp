@@ -11,14 +11,14 @@ import AgendaGestiones from './pages/AgendaGestiones';
 import QueVer from './pages/QueVer';
 import MenuAgenda from './pages/MenuAgenda';
 import Conso from './pages/Conso';
-import Pasatiempos from './pages/Pasatiempos';
 import PanelComercio from './pages/PanelComercio';
 import Admin from './pages/Admin';
 import Tablon from './pages/Tablon';
 import Teatro from './pages/Teatro';
 import Noticias from './pages/Noticias';
+import CajaHerramientas from './pages/CajaHerramientas';
 import TrenesUtrera from './components/TrenesUtrera';
-import { Store, MessageSquare, Gamepad2, Home as HomeIcon, Newspaper, Train } from 'lucide-react';
+import { Store, MessageSquare, Home as HomeIcon, Newspaper, Train, Wrench } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 
 export default function App() {
@@ -74,8 +74,8 @@ export default function App() {
         return <Noticias setPaginaActual={setPaginaActual} />;
       case 'conso':
         return <Conso setPaginaActual={setPaginaActual} />;
-      case 'pasatiempos':
-        return <Pasatiempos setPaginaActual={setPaginaActual} />;
+      case 'caja-herramientas':
+        return <CajaHerramientas setPaginaActual={setPaginaActual} />;
       case 'tablon':
         return <Tablon setPaginaActual={setPaginaActual} />;
       case 'admin':
@@ -124,19 +124,19 @@ export default function App() {
         </button>
 
         <button 
+          onClick={() => setPaginaActual('caja-herramientas')}
+          className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'caja-herramientas' ? 'text-amber-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          <Wrench size={20} />
+          <span className="text-[10px]">Herramientas</span>
+        </button>
+
+        <button 
           onClick={() => setPaginaActual('trenes')}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'trenes' ? 'text-blue-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
         >
           <Train size={20} />
           <span className="text-[10px]">Trenes</span>
-        </button>
-
-        <button 
-          onClick={() => setPaginaActual('tablon')}
-          className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'tablon' ? 'text-amber-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
-        >
-          <Newspaper size={20} />
-          <span className="text-[10px]">Tablón</span>
         </button>
 
         <button 

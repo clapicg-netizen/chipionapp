@@ -1,6 +1,6 @@
 // frontend/src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
-import { Search, MapPin, Pill, Building2, HeartPulse, Stethoscope, CalendarDays, Landmark, UtensilsCrossed, Newspaper } from "lucide-react";
+import { Search, MapPin, Pill, Building2, HeartPulse, Stethoscope, CalendarDays, Landmark, UtensilsCrossed, Newspaper, Wrench } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function Home({ setPaginaActual, setTab }) {
@@ -18,13 +18,13 @@ export default function Home({ setPaginaActual, setTab }) {
     },
     {
       id: 2,
-      tipo: "JUEGO & PREMIOS 🏆",
+      tipo: "UTILIDADES ÚTILES 🛠️",
       color_badge: "bg-amber-500 text-slate-900",
-      titulo: "La Búsqueda del Mostachón",
-      subtitulo: "Encuentra las pistas por los comercios y gana premios",
+      titulo: "Caja de Herramientas",
+      subtitulo: "Conversor PDF, calculadora de costes y kit para opositores",
       bg_gradient: "from-amber-600 to-yellow-600",
-      icono: "🧁",
-      accion_tab: "pasatiempos"
+      icono: "🧰",
+      accion_tab: "caja-herramientas"
     },
     {
       id: 3,
@@ -310,10 +310,10 @@ export default function Home({ setPaginaActual, setTab }) {
         </div>
       </div>
 
-      {/* OCIO, CLASIFICADOS Y ENTRETENIMIENTO */}
+      {/* OCIO, CLASIFICADOS Y UTILIDADES */}
       <div className="px-4 mt-5 max-w-md mx-auto">
         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-          Ocio y Tablón Local
+          Ocio y Utilidades
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <button 
@@ -332,15 +332,15 @@ export default function Home({ setPaginaActual, setTab }) {
 
           <button 
             type="button"
-            onClick={(e) => cambiarPestana(e, "pasatiempos")}
-            className="bg-gradient-to-br from-purple-600 to-indigo-700 p-3.5 rounded-2xl text-white shadow-md flex items-center gap-3 text-left border border-purple-500/40 active:scale-[0.98] transition-transform cursor-pointer"
+            onClick={(e) => cambiarPestana(e, "caja-herramientas")}
+            className="bg-gradient-to-br from-indigo-600 to-blue-700 p-3.5 rounded-2xl text-white shadow-md flex items-center gap-3 text-left border border-indigo-500/40 active:scale-[0.98] transition-transform cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-lg shadow-inner flex-shrink-0">
-              🎮
+            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner flex-shrink-0">
+              <Wrench size={18} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] uppercase font-black text-purple-200 tracking-wider">Relajación</p>
-              <h3 className="font-extrabold text-xs leading-tight truncate">Pasatiempos y Juegos</h3>
+              <p className="text-[9px] uppercase font-black text-indigo-200 tracking-wider">Productividad</p>
+              <h3 className="font-extrabold text-xs leading-tight truncate">Caja de Herramientas</h3>
             </div>
           </button>
 
