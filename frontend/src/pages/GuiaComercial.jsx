@@ -28,10 +28,6 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
   // Estados para Patrocinadores de la Guía
   const [sponsors, setSponsors] = useState([]);
   const [currentIndexSponsor, setCurrentIndexSponsor] = useState(0);
-  const [showAdminSponsors, setShowAdminSponsors] = useState(false);
-  const [sponsorName, setSponsorName] = useState('');
-  const [sponsorLogo, setSponsorLogo] = useState('');
-  const [sponsorLink, setSponsorLink] = useState('');
 
   // Formulario de edición/creación completo con Redes Sociales, Galería y Datos Especiales (JSON)
   const [formData, setFormData] = useState({
@@ -70,6 +66,22 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
     cargarSponsors();
   }, []);
 
+  // Detector de enlaces mágicos por URL (?editar=id&pin=clave)
+  useEffect(() => {
+    if (comercios.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const editarParam = params.get('editar');
+    const pinParam = params.get('pin');
+
+    if (editarParam && pinParam) {
+      const comercioEncontrado = comercios.find(c => c.id.toString() === editarParam.toString());
+      if (comercioEncontrado && (pinParam === PIN_ADMIN_MAESTRO || pinParam === comercioEncontrado.pin_acceso)) {
+        prepararEdicionComercio(comercioEncontrado);
+        setAutenticadoAdmin(true);
+      }
+    }
+  }, [comercios]);
+
   const cargarComercios = async () => {
     setCargando(true);
     try {
@@ -101,32 +113,6 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
     }, 3000);
     return () => clearInterval(interval);
   }, [sponsors.length]);
-
-  const handleAddSponsor = async (e) => {
-    e.preventDefault();
-    if (!sponsorName || !sponsorLogo) return;
-
-    const { error } = await supabase.from('sponsors').insert([
-      { name: sponsorName, logo_url: sponsorLogo, link: sponsorLink, active: true }
-    ]);
-
-    if (!error) {
-      setSponsorName('');
-      setSponsorLogo('');
-      setSponsorLink('');
-      cargarSponsors();
-      alert('¡Patrocinador añadido con éxito!');
-    } else {
-      alert('Error al añadir. Comprueba la tabla sponsors en Supabase.');
-    }
-  };
-
-  const handleDeleteSponsor = async (id) => {
-    if (confirm('¿Seguro que quieres borrar este patrocinador?')) {
-      const { error } = await supabase.from('sponsors').delete().eq('id', id);
-      if (!error) cargarSponsors();
-    }
-  };
 
   const comerciosCarrusel = comercios.length > 0 ? comercios : [];
 
@@ -311,114 +297,42 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
 
       <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
 
-        {/* MÓDULO DE PATROCINADORES DE LA GUÍA */}
-        <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
-              ⭐ Patrocinadores Oficiales
-            </span>
-            <button 
-              onClick={() => setShowAdminSponsors(!showAdminSponsors)}
-              className={`px-2 py-0.5 rounded text-[10px] font-bold text-white transition-colors ${showAdminSponsors ? 'bg-slate-700' : 'bg-red-700 hover:bg-red-800'}`}
-            >
-              {showAdminSponsors ? 'Ver Carrusel' : '⚙️ Gestionar'}
-            </button>
-          </div>
+        {/* MÓDULO DE PATROCINADORES OFICIALES (100% PÚBLICO Y LIMPIO) */}
+        {sponsors.length > 0 && (
+          <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
+                ⭐ Patrocinadores Oficiales
+              </span>
+            </div>
 
-          {/* Carrusel Activo */}
-          {sponsors.length > 0 && !showAdminSponsors && (
-            <div className="bg-gradient-to-r from-amber-50 to-red-50 border border-amber-200/60 rounded-xl p-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <img 
-                  src={currentSponsor.logo_url} 
-                  alt={currentSponsor.name} 
-                  className="w-10 h-10 object-cover rounded-lg border border-slate-200 flex-shrink-0" 
-                />
-                <div className="min-w-0">
-                  <h4 className="font-bold text-slate-900 text-xs truncate">{currentSponsor.name}</h4>
-                  <span className="text-[9px] text-amber-700 font-medium">Patrocinador ({currentIndexSponsor + 1}/{sponsors.length})</span>
+            {currentSponsor && (
+              <div className="bg-gradient-to-r from-amber-50 to-red-50 border border-amber-200/60 rounded-xl p-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <img 
+                    src={currentSponsor.logo_url} 
+                    alt={currentSponsor.name} 
+                    className="w-10 h-10 object-cover rounded-lg border border-slate-200 flex-shrink-0" 
+                  />
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-900 text-xs truncate">{currentSponsor.name}</h4>
+                    <span className="text-[9px] text-amber-700 font-medium">Patrocinador ({currentIndexSponsor + 1}/{sponsors.length})</span>
+                  </div>
                 </div>
+                {currentSponsor.link && (
+                  <a 
+                    href={currentSponsor.link} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex-shrink-0 ml-2"
+                  >
+                    Visitar
+                  </a>
+                )}
               </div>
-              {currentSponsor.link && (
-                <a 
-                  href={currentSponsor.link} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex-shrink-0 ml-2"
-                >
-                  Visitar
-                </a>
-              )}
-            </div>
-          )}
-
-          {/* Si no hay patrocinadores */}
-          {sponsors.length === 0 && !showAdminSponsors && (
-            <div className="text-center py-2">
-              <p className="text-[11px] text-slate-500 mb-1">No hay patrocinadores añadidos todavía.</p>
-              <button 
-                onClick={() => setShowAdminSponsors(true)}
-                className="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold"
-              >
-                + Añadir el primero
-              </button>
-            </div>
-          )}
-
-          {/* Panel de Gestión Rápida de Patrocinadores */}
-          {showAdminSponsors && (
-            <div className="pt-2 border-t border-slate-100 space-y-2 mt-2">
-              <h3 className="text-[11px] font-bold text-slate-900 uppercase">Panel Rápido Patrocinadores</h3>
-              <form onSubmit={handleAddSponsor} className="space-y-1.5">
-                <input 
-                  type="text" 
-                  placeholder="Nombre" 
-                  value={sponsorName} 
-                  onChange={(e) => setSponsorName(e.target.value)}
-                  className="w-full p-1.5 text-xs rounded-lg border border-slate-300" 
-                  required 
-                />
-                <input 
-                  type="text" 
-                  placeholder="URL Logo" 
-                  value={sponsorLogo} 
-                  onChange={(e) => setSponsorLogo(e.target.value)}
-                  className="w-full p-1.5 text-xs rounded-lg border border-slate-300" 
-                  required 
-                />
-                <input 
-                  type="text" 
-                  placeholder="Enlace web (opcional)" 
-                  value={sponsorLink} 
-                  onChange={(e) => setSponsorLink(e.target.value)}
-                  className="w-full p-1.5 text-xs rounded-lg border border-slate-300" 
-                />
-                <button 
-                  type="submit" 
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-[11px] font-bold shadow-sm"
-                >
-                  + Guardar y Publicar
-                </button>
-              </form>
-
-              {sponsors.length > 0 && (
-                <div className="max-h-28 overflow-y-auto space-y-1 pt-1 border-t">
-                  {sponsors.map((s) => (
-                    <div key={s.id} className="flex justify-between items-center bg-slate-50 px-2 py-1 rounded border">
-                      <span className="text-[11px] font-medium truncate max-w-[150px]">{s.name}</span>
-                      <button 
-                        onClick={() => handleDeleteSponsor(s.id)}
-                        className="bg-red-500 text-white px-1.5 py-0.5 rounded text-[9px] font-bold"
-                      >
-                        Borrar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* CATEGORÍAS */}
         <div className="space-y-2">
@@ -489,25 +403,16 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-3">
+                  <div className="mt-3">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setComercioSel(comercio);
                         setModoAdmin(false);
                       }}
-                      className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors text-center"
+                      className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors text-center cursor-pointer"
                     >
                       👁️ Ver Ficha Completa
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        prepararEdicionComercio(comercio);
-                      }}
-                      className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition-colors flex items-center gap-1"
-                    >
-                      ✏️ Editar
                     </button>
                   </div>
                 </div>
@@ -558,7 +463,7 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
 
                     <button
                       type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl shadow"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl shadow cursor-pointer"
                     >
                       Ver Panel de Edición
                     </button>
@@ -570,7 +475,7 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
                       <button
                         type="button"
                         onClick={() => setModoAdmin(false)}
-                        className="text-xs bg-slate-100 px-2.5 py-1 rounded-lg font-bold text-slate-600"
+                        className="text-xs bg-slate-100 px-2.5 py-1 rounded-lg font-bold text-slate-600 cursor-pointer"
                       >
                         Ver Ficha
                       </button>
@@ -709,7 +614,7 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
                             <button
                               type="button"
                               onClick={() => eliminarDeGaleria(idx)}
-                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 text-[9px] font-bold flex items-center justify-center"
+                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 text-[9px] font-bold flex items-center justify-center cursor-pointer"
                             >
                               ✕
                             </button>
@@ -813,7 +718,7 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
                     <button
                       type="submit"
                       disabled={guardando}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl shadow"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl shadow cursor-pointer"
                     >
                       {guardando ? "Guardando..." : "💾 Guardar Cambios"}
                     </button>
@@ -823,23 +728,15 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
             ) : (
               /* VISTA NORMAL O ESPECIAL DE LA FICHA DEL COMERCIO */
               <div>
-                {/* SI ES FICHA ESPECIAL 1 (INMOBILIARIA) -> CARGA EL COMPONENTE AVANZADO */}
+                {/* SI ES FICHA ESPECIAL 1 (INMOBILIARIA) */}
                 {comercioSel.tipo_ficha === 'especial1' ? (
                   <FichaInmobiliaria negocioId={comercioSel.id} />
                 ) : comercioSel.tipo_ficha === 'especial2' ? (
-                  /* SI ES FICHA ESPECIAL 2 (COMIDA) -> CARGA EL COMPONENTE AVANZADO DE PEDIDOS */
+                  /* SI ES FICHA ESPECIAL 2 (COMIDA) */
                   <FichaComida negocioId={comercioSel.id} />
                 ) : comercioSel.subcategoria && comercioSel.subcategoria.toLowerCase().includes('landing') ? (
-                  /* SI LA SUBCATEGORÍA CONTIENE "LANDING" -> RENDERIZA LA LANDING PAGE MODERNA COMO PORTADA */
+                  /* SI LA SUBCATEGORÍA CONTIENE "LANDING" */
                   <div className="space-y-4">
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => { setModoAdmin(true); setAutenticadoAdmin(false); }}
-                        className="bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1 cursor-pointer"
-                      >
-                        ✏️ Editar
-                      </button>
-                    </div>
                     <LandingComercio comercio={comercioSel} />
                   </div>
                 ) : (
@@ -849,19 +746,11 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
                       <img src={obtenerPortadaValida(comercioSel.portada_url)} alt={comercioSel.nombre} className="w-full h-full object-cover" />
                     </div>
 
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h2 className="text-2xl font-bold text-slate-800">{comercioSel.nombre}</h2>
-                        <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mt-0.5">
-                          {comercioSel.subcategoria || comercioSel.categoria}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => { setModoAdmin(true); setAutenticadoAdmin(false); }}
-                        className="bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1"
-                      >
-                        ✏️ Editar
-                      </button>
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-800">{comercioSel.nombre}</h2>
+                      <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mt-0.5">
+                        {comercioSel.subcategoria || comercioSel.categoria}
+                      </p>
                     </div>
 
                     {comercioSel.direccion && (
