@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
 export default function TrenesUtrera() {
-    const [actualizado, setActualizado] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    const [tiempoActual, setTiempoActual] = useState(new Date());
     const [cargando, setCargando] = useState(false);
-    const [segundos, setSegundos] = useState(11);
     const [vistaActiva, setVistaActiva] = useState('salidas');
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setSegundos(s => (s > 1 ? s - 1 : 15));
+            setTiempoActual(new Date());
         }, 1000);
         return () => clearInterval(timer);
     }, []);
@@ -16,11 +15,31 @@ export default function TrenesUtrera() {
     const recargarTrenes = () => {
         setCargando(true);
         setTimeout(() => {
-            setActualizado(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-            setSegundos(3);
+            setTiempoActual(new Date());
             setCargando(false);
         }, 400);
     };
+
+    // Función matemática para calcular los minutos exactos restantes hasta una hora dada (ej. "08:10")
+    const calcularMinutosRestantes = (horaDestinoStr) => {
+        const [hDest, mDest] = horaDestinoStr.split(':').map(Number);
+        const ahoraH = tiempoActual.getHours();
+        const ahoraM = tiempoActual.getMinutes();
+        const ahoraS = tiempoActual.getSeconds();
+
+        const totalSegundosAhora = ahoraH * 3600 + ahoraM * 60 + ahoraS;
+        const totalSegundosDestino = hDest * 3600 + mDest * 60;
+
+        const diffSegundos = totalSegundosDestino - totalSegundosAhora;
+        if (diffSegundos <= 0) return "En salida";
+        
+        const min = Math.floor(diffSegundos / 60);
+        if (min < 1) return "1 min";
+        return `${min}`;
+    };
+
+    const horaFormateada = tiempoActual.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const segundosRelativo = Math.floor(tiempoActual.getTime() / 1000) % 15;
 
     const compartirWhatsApp = (tipo, destino, hora, detalle) => {
         const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. ¡Consultado en Utrerapp Live!`);
@@ -34,9 +53,9 @@ export default function TrenesUtrera() {
                 <div>
                     <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">En directo • hace {segundos} s</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">En directo • hace {segundosRelativo} s</span>
                     </div>
-                    <p className="text-[11px] text-slate-300 mt-0.5">Estación Central de Utrera</p>
+                    <p className="text-[11px] text-slate-300 mt-0.5">Estación Central de Utrera ({horaFormateada})</p>
                 </div>
                 <button 
                     onClick={recargarTrenes} 
@@ -84,7 +103,7 @@ export default function TrenesUtrera() {
                             <span className="text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-bold">Cercanías C1</span>
                         </div>
 
-                        {/* Tarjeta Destacada Hacia Sevilla */}
+                        {/* Tarjeta Dinámica Calculada en Tiempo Real */}
                         <div className="bg-amber-50/60 rounded-2xl p-5 border border-amber-200/80 mb-4 shadow-sm">
                             <div className="flex justify-between items-start mb-3">
                                 <div>
@@ -97,7 +116,9 @@ export default function TrenesUtrera() {
 
                             <div className="my-3 py-3 border-y border-amber-200/60 flex items-baseline justify-between">
                                 <div>
-                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">28–33</span>
+                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                                        {calcularMinutosRestantes("08:10")}-{parseInt(calcularMinutosRestantes("08:10")) + 4}
+                                    </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
                                 <div className="text-right">
@@ -113,7 +134,7 @@ export default function TrenesUtrera() {
                                     🚆 Vía 3
                                 </span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("hacia", "Sevilla-Santa Justa", "08:10", "Sale en 28-33 min")}
+                                    onClick={() => compartirWhatsApp("hacia", "Sevilla-Santa Justa", "08:10", "Sale en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisar
@@ -125,17 +146,6 @@ export default function TrenesUtrera() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
                                 <div className="flex items-center gap-3">
-                                    <span className="font-extrabold text-slate-900 text-sm">08:17</span>
-                                    <div>
-                                        <span className="font-bold text-slate-800 block">Jaén (Media Distancia)</span>
-                                        <span className="text-[10px] text-slate-400">Previsto a las 08:04</span>
-                                    </div>
-                                </div>
-                                <span className="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full font-bold">13 min tarde</span>
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
-                                <div className="flex items-center gap-3">
                                     <span className="font-extrabold text-slate-900 text-sm">08:18</span>
                                     <div>
                                         <span className="font-bold text-slate-800 block">Lora del Río (C1)</span>
@@ -143,6 +153,17 @@ export default function TrenesUtrera() {
                                     </div>
                                 </div>
                                 <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">A su hora</span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <span className="font-extrabold text-slate-900 text-sm">08:19</span>
+                                    <div>
+                                        <span className="font-bold text-slate-800 block">Jaén (Media Distancia)</span>
+                                        <span className="text-[10px] text-slate-400">Previsto a las 08:04</span>
+                                    </div>
+                                </div>
+                                <span className="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full font-bold">15 min tarde</span>
                             </div>
                         </div>
                     </div>
@@ -157,7 +178,6 @@ export default function TrenesUtrera() {
                             <span className="text-xs bg-blue-100 text-blue-900 px-3 py-1 rounded-full font-bold">Media Distancia / C1</span>
                         </div>
 
-                        {/* Tarjeta Destacada Hacia Cádiz */}
                         <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-200/80 mb-4 shadow-sm">
                             <div className="flex justify-between items-start mb-3">
                                 <div>
@@ -170,7 +190,9 @@ export default function TrenesUtrera() {
 
                             <div className="my-3 py-3 border-y border-blue-200/60 flex items-baseline justify-between">
                                 <div>
-                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">1h 15</span>
+                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                                        {calcularMinutosRestantes("08:58")}
+                                    </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
                                 <div className="text-right">
@@ -197,35 +219,20 @@ export default function TrenesUtrera() {
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
-                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">
-                                    Media Distancia
-                                </span>
+                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">Media Distancia</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("hacia", "Cádiz", "08:58", "Llega a Utrera en 1h 15m")}
+                                    onClick={() => compartirWhatsApp("hacia", "Cádiz", "08:58", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisar
                                 </button>
                             </div>
                         </div>
-
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
-                                <div className="flex items-center gap-3">
-                                    <span className="font-extrabold text-slate-900 text-sm">10:23</span>
-                                    <div>
-                                        <span className="font-bold text-slate-800 block">Cádiz (Media Distancia)</span>
-                                        <span className="text-[10px] text-slate-400">Servicio regular</span>
-                                    </div>
-                                </div>
-                                <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">Previsto</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             )}
 
-            {/* VISTA 2: LLEGADAS A UTRERA (CON VIRGEN DEL ROCÍO / HOSPITAL) */}
+            {/* VISTA 2: LLEGADAS A UTRERA */}
             {vistaActiva === 'llegadas' && (
                 <div className="space-y-4">
                     <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
@@ -237,7 +244,6 @@ export default function TrenesUtrera() {
                             <span className="text-xs bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full font-bold">C1 / Sanidad</span>
                         </div>
 
-                        {/* Tarjeta Destacada Llegadas con Paradas en Sevilla */}
                         <div className="bg-emerald-50/60 rounded-2xl p-5 border border-emerald-200/80 mb-4 shadow-sm">
                             <div className="flex justify-between items-start mb-3">
                                 <div>
@@ -250,7 +256,9 @@ export default function TrenesUtrera() {
 
                             <div className="my-3 py-3 border-y border-emerald-200/60 flex items-baseline justify-between">
                                 <div>
-                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">12</span>
+                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                                        {calcularMinutosRestantes("08:02")}
+                                    </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
                                 <div className="text-right">
@@ -259,7 +267,6 @@ export default function TrenesUtrera() {
                                 </div>
                             </div>
 
-                            {/* Esquema de paso por Sevilla y Hospital */}
                             <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-emerald-100">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Paso por Sevilla:</span>
                                 <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
@@ -271,32 +278,18 @@ export default function TrenesUtrera() {
                                     <div className="absolute left-4 right-4 h-0.5 bg-emerald-200 top-1/2 -translate-y-1/2 z-0"></div>
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
-                                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow z-10" title="Apeadero Hospital Virgen del Rocío"></div>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow z-10"></div>
                                 </div>
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">🚆 Vía 2</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", "08:02", "Llega a Utrera en 12 min")}
+                                    onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", "08:02", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisar desde el Hospital
                                 </button>
-                            </div>
-                        </div>
-
-                        {/* Siguientes llegadas */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
-                                <div className="flex items-center gap-3">
-                                    <span className="font-extrabold text-slate-900 text-sm">08:35</span>
-                                    <div>
-                                        <span className="font-bold text-slate-800 block">Media Distancia (Desde Cádiz)</span>
-                                        <span className="text-[10px] text-slate-400">Vía 1</span>
-                                    </div>
-                                </div>
-                                <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">Previsto</span>
                             </div>
                         </div>
                     </div>
