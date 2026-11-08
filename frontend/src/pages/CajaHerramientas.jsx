@@ -182,28 +182,31 @@ export default function CajaHerramientas({ setPaginaActual }) {
             <div className="flex border-b border-gray-200 mb-4 overflow-x-auto">
                 <button
                     onClick={() => setPestanaActiva('pdf')}
-                    className={`py-2 px-4 font-semibold text-sm whitespace-nowrap ${pestanaActiva === 'pdf' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                    className={`py-2 px-4 font-semibold text-sm whitespace-nowrap flex items-center space-x-1 ${pestanaActiva === 'pdf' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                 >
-                    📄 PDF
+                    <span>📄</span> <span>PDF</span>
                 </button>
                 <button
                     onClick={() => setPestanaActiva('costes')}
-                    className={`py-2 px-4 font-semibold text-sm whitespace-nowrap ${pestanaActiva === 'costes' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                    className={`py-2 px-4 font-semibold text-sm whitespace-nowrap flex items-center space-x-1 ${pestanaActiva === 'costes' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                 >
-                    🧮 Autónomos
+                    <span>🧮</span> <span>Autónomos</span>
                 </button>
                 <button
                     onClick={() => setPestanaActiva('estudio')}
-                    className={`py-2 px-4 font-semibold text-sm whitespace-nowrap ${pestanaActiva === 'estudio' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                    className={`py-2 px-4 font-semibold text-sm whitespace-nowrap flex items-center space-x-1 ${pestanaActiva === 'estudio' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                 >
-                    🎓 Estudiantes y Opositores
+                    <span>🎓</span> <span>Estudiantes y Opositores</span>
                 </button>
             </div>
 
             {/* 1. SECCIÓN PDF */}
             {pestanaActiva === 'pdf' && (
                 <div className="space-y-3">
-                    <p className="text-xs text-gray-600">Escribe o pega tu texto y conviértelo a PDF al instante.</p>
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg mb-3">
+                        <p className="text-xs font-bold text-blue-900">📄 Conversor exprés de Texto a PDF</p>
+                        <p className="text-[11px] text-blue-700">Escribe o pega tus notas, apuntes o presupuestos y descárgalos al instante.</p>
+                    </div>
                     <textarea
                         value={textoPdf}
                         onChange={(e) => setTextoPdf(e.target.value)}
@@ -223,7 +226,10 @@ export default function CajaHerramientas({ setPaginaActual }) {
             {/* 2. SECCIÓN AUTÓNOMOS */}
             {pestanaActiva === 'costes' && (
                 <div className="space-y-3">
-                    <p className="text-xs text-gray-600">Calcula el precio de venta ideal aplicando coste y margen.</p>
+                    <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg mb-3">
+                        <p className="text-xs font-bold text-emerald-900">🧮 Calculadora de Costes y Márgenes</p>
+                        <p className="text-[11px] text-emerald-700">Calcula precios de venta, beneficios netos e IVA estimado para tus trabajos.</p>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-[11px] font-medium text-gray-700 mb-1">Coste base (€)</label>
@@ -267,6 +273,11 @@ export default function CajaHerramientas({ setPaginaActual }) {
             {/* 3. SECCIÓN ESTUDIANTES Y OPOSITORES */}
             {pestanaActiva === 'estudio' && (
                 <div className="space-y-3">
+                    <div className="bg-purple-50 border-l-4 border-purple-500 p-3 rounded-r-lg mb-3">
+                        <p className="text-xs font-bold text-purple-900">🎓 Kit Integral para Opositores y Estudiantes</p>
+                        <p className="text-[11px] text-purple-700">Flashcards con memoria local, planificación de repasos, temporizador y recursos.</p>
+                    </div>
+
                     {/* Sub-pestañas internas */}
                     <div className="flex space-x-2 overflow-x-auto pb-1">
                         <button
