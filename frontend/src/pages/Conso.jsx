@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Send, Bot, User, Sparkles, HeartPulse, Pill, Train, MapPin, Car } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function Conso() {
+export default function Conso({ setPaginaActual }) {
   const [mensaje, setMensaje] = useState('');
   const [cargandoIA, setCargandoIA] = useState(false);
   
@@ -52,7 +52,6 @@ export default function Conso() {
           guardiasHoy = fallback || [];
         }
 
-        // Filtro exacto basado en la columna 'turno' de Supabase (Día / Noche)
         const farmaciasDia = guardiasHoy.filter(f => {
           const t = (f.turno || "").toLowerCase();
           return t.includes('día') || t.includes('dia');
@@ -136,27 +135,20 @@ export default function Conso() {
       return (
         <div className="space-y-3">
           <div>
-            <p className="font-bold text-slate-900 mb-0.5">🚆 CERCANÍAS LÍNEA C-1 (Utrera ⇄ Sevilla)</p>
-            <p className="text-[11px] text-slate-500">Horarios oficiales de Renfe</p>
+            <p className="font-bold text-slate-900 mb-0.5">🚆 UTRERAPP LIVE • ESTADO DEL TREN</p>
+            <p className="text-[11px] text-slate-500">Información en tiempo real y cuentas atrás</p>
           </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-3.5 rounded-2xl shadow-md space-y-3">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 rounded-2xl shadow-md space-y-3">
+            <p className="text-xs text-slate-200">¡Consulta las salidas, llegadas con paso por el Hospital Virgen del Rocío y el mapa en directo!</p>
             <button
               onClick={(e) => {
                 e.preventDefault();
-                window.open("https://www.renfe.com/es/es/cercanias/cercanias-sevilla/horarios#/paradas?stationInputValue=51200&stationInputText=Utrera", "_blank");
+                setPaginaActual('trenes');
               }}
-              className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer"
             >
-              <span>🚆 Ver Horarios: Utrera ➔ Sevilla</span>
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                window.open("https://www.renfe.com/es/es/cercanias/cercanias-sevilla/horarios#/paradas?stationInputValue=51100&stationInputText=Sevilla-Santa%20Justa", "_blank");
-              }}
-              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span>🚆 Ver Horarios: Sevilla ➔ Utrera</span>
+              <Train size={16} />
+              <span>Abrir Estado del Tren en Directo ➔</span>
             </button>
           </div>
         </div>
