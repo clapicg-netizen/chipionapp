@@ -41,7 +41,6 @@ export default function TrenesUtrera() {
     const segundosRelativo = Math.floor(tiempoActual.getTime() / 1000) % 15;
 
     // --- MATRIZ HORARIA INTELIGENTE DE ÉLITE ---
-    // Definimos el listado maestro de salidas del día hacia Sevilla/Lora para que el sistema elija siempre la vigente
     const salidasSevilla = [
         { h: 7, m: 10, destino: "Santa Justa", via: "Vía 3" },
         { h: 7, m: 45, destino: "Lora del Río", via: "Vía 1" },
@@ -56,9 +55,7 @@ export default function TrenesUtrera() {
         { h: 21, m: 0,  destino: "Santa Justa", via: "Vía 3" }
     ];
 
-    // Buscamos automáticamente el primer tren cuya hora de salida sea posterior a la hora actual del sistema
     const ahoraMinutosTotales = tiempoActual.getHours() * 60 + tiempoActual.getMinutes();
-    
     const trenesFuturos = salidasSevilla.filter(t => (t.h * 60 + t.m) > ahoraMinutosTotales);
     const proximoTren = trenesFuturos.length > 0 ? trenesFuturos[0] : salidasSevilla[0];
     const siguientesTrenes = trenesFuturos.slice(1, 4);
@@ -351,8 +348,14 @@ export default function TrenesUtrera() {
                 </div>
             )}
 
-            <div className="text-center pt-2">
-                <span className="text-xs text-slate-400 font-bold">Utrerapp Live • Excelencia en Movilidad</span>
+            {/* PIE DE PÁGINA LEGAL / FUENTE OFICIAL */}
+            <div className="bg-slate-100 border border-slate-200/80 p-3 rounded-2xl text-center space-y-1">
+                <p className="text-[11px] font-bold text-slate-600">
+                    Fuente oficial de datos: <span className="text-slate-900 font-extrabold">Renfe Operadora / Adif</span>
+                </p>
+                <p className="text-[10px] text-slate-500">
+                    Utrerapp Live • Servicio informativo no oficial operado bajo estándares de utilidad pública.
+                </p>
             </div>
         </div>
     );
