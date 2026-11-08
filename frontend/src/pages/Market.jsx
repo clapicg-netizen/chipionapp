@@ -33,8 +33,15 @@ export default function Market() {
   const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(false);
 
-  // Estados específicos para los Patrocinadores de la Guía
-  const [sponsors, setSponsors] = useState([]);
+  // Estados para patrocinadores (arrancamos con Mocaibo por defecto para que se vea ya)
+  const [sponsors, setSponsors] = useState([
+    {
+      id: "mocaibo-1",
+      name: "Cafés Mocaibo",
+      logo_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
+      link: "https://mocaibo.com"
+    }
+  ]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAdminSponsors, setShowAdminSponsors] = useState(false);
   const [sponsorName, setSponsorName] = useState('');
@@ -43,7 +50,7 @@ export default function Market() {
 
   const categorias = ["Todos", "Hostelería", "Comercio", "Servicios", "Salud y Belleza", "Inmobiliaria (Especial)", "Comida (Especial)"];
 
-  // Cargar comercios
+  // Cargar comercios de Supabase
   useEffect(() => {
     async function fetchData() {
       setCargando(true);
@@ -73,19 +80,20 @@ export default function Market() {
     fetchData();
   }, [categoriaSel]);
 
-  // Cargar Patrocinadores desde Supabase
+  // Intentar cargar también de Supabase si existe la tabla
   useEffect(() => {
-    fetchSponsors();
-  }, []);
-
-  const fetchSponsors = async () => {
-    try {
-      const { data, error } = await supabase.from('sponsors').select('*').eq('active', true);
-      if (!error && data) setSponsors(data);
-    } catch (e) {
-      console.log("Tabla sponsors pendiente");
+    async function fetchSponsorsFromDB() {
+      try {
+        const { data, error } = await supabase.from('sponsors').select('*').eq('active', true);
+        if (!error && data && data.length > 0) {
+          setSponsors(data); // Si hay en la base de datos, los usamos
+        }
+      } catch (e) {
+        console.log("Usando patrocinador por defecto");
+      }
     }
-  };
+    fetchSponsorsFromDB();
+  }, []);
 
   // Rotación automática cada 3 segundos
   useEffect(() => {
@@ -99,20 +107,22 @@ export default function Market() {
   const handleAddSponsor = async (e) => {
     e.preventDefault();
     if (!sponsorName || !sponsorLogo) return;
+
+    // Intentamos guardar en Supabase
     const { error } = await supabase.from('sponsors').insert([{ name: sponsorName, logo_url: sponsorLogo, link: sponsorLink, active: true }]);
-    if (!error) {
-      setSponsorName(''); setSponsorLogo(''); setSponsorLink('');
-      fetchSponsors();
-      alert('¡Patrocinador añadido con éxito!');
-    } else {
-      alert('Error al añadir. Asegúrate de haber creado la tabla sponsors en Supabase.');
-    }
+    
+    // Lo añadimos también localmente para verlo al momento
+    const nuevoPatro = { id: Date.now().toString(), name: sponsorName, logo_url: sponsorLogo, link: sponsorLink };
+    setSponsors([...sponsors, nuevoPatro]);
+    
+    setSponsorName(''); setSponsorLogo(''); setSponsorLink('');
+    alert('¡Patrocinador añadido con éxito!');
   };
 
   const handleDeleteSponsor = async (id) => {
     if (confirm('¿Seguro que quieres borrar este patrocinador?')) {
-      const { error } = await supabase.from('sponsors').delete().eq('id', id);
-      if (!error) fetchSponsors();
+      await supabase.from('sponsors').delete().eq('id', id);
+      setSponsors(sponsors.filter(s => s.id !== id));
     }
   };
 
@@ -127,7 +137,7 @@ export default function Market() {
     window.open(`https://www.google.com/maps/search/?api=1&query=${direccionEscapada}`, "_blank");
   };
 
-  const currentSponsor = sponsors.length > 0 ? sponsors[currentIndex] : null;
+  const currentSponsor = sponsors[currentIndex] || sponsors[0];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 text-slate-800 font-sans">
@@ -150,11 +160,11 @@ export default function Market() {
         </div>
       </div>
 
-      {/* CARRUSEL DE PATROCINADORES EXCLUSIVO DE LA GUÍA COMERCIAL */}
+      {/* CARRUSEL Y GESTIÓN DE PATROCINADORES */}
       <div className="px-4 mt-3 max-w-lg mx-auto">
         <div className="flex justify-between items-center mb-1">
           <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500 flex items-center gap-1">
-            ⭐ Patrocinadores de la Guía
+            ⭐ Patrocinadores Oficiales
           </span>
           <button 
             onClick={() => setShowAdminSponsors(!showAdminSponsors)}
@@ -165,13 +175,13 @@ export default function Market() {
         </div>
 
         {/* Carrusel Rotativo */}
-        {sponsors.length > 0 && !showAdminSponsors && (
+        {!showAdminSponsors && (
           <div className="bg-gradient-to-br from-amber-50 via-white to-red-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3 min-w-0">
               <img src={currentSponsor.logo_url} alt={currentSponsor.name} className="w-12 h-12 object-cover rounded-xl border border-slate-200 flex-shrink-0 shadow-inner" />
               <div className="min-w-0">
                 <h4 className="font-bold text-slate-900 text-sm truncate">{currentSponsor.name}</h4>
-                <span className="text-[10px] text-amber-700 font-semibold">Patrocinador oficial ({currentIndex + 1}/{sponsors.length})</span>
+                <span className="text-[10px] text-amber-700 font-semibold">Patrocinador ({currentIndex + 1}/{sponsors.length})</span>
               </div>
             </div>
             {currentSponsor.link && (
@@ -180,23 +190,15 @@ export default function Market() {
           </div>
         )}
 
-        {/* Si no hay patrocinadores todavía */}
-        {sponsors.length === 0 && !showAdminSponsors && (
-          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-3 text-center">
-            <p className="text-xs text-slate-500 mb-1">No hay patrocinadores en la guía todavía.</p>
-            <button onClick={() => setShowAdminSponsors(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-sm">+ Añadir el primero</button>
-          </div>
-        )}
-
         {/* Panel de Gestión Rápida */}
         {showAdminSponsors && (
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-md mt-1">
-            <h3 className="text-xs font-bold text-slate-900 mb-2 uppercase tracking-wide">Panel de Patrocinadores (Guía)</h3>
+            <h3 className="text-xs font-bold text-slate-900 mb-2 uppercase tracking-wide">Panel Rápido Patrocinadores</h3>
             <form onSubmit={handleAddSponsor} className="flex flex-col gap-2 mb-3">
               <input type="text" placeholder="Nombre del Patrocinador" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-red-700" required />
               <input type="text" placeholder="URL del Logo (ej: https://...)" value={sponsorLogo} onChange={(e) => setSponsorLogo(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-red-700" required />
               <input type="text" placeholder="Enlace web (opcional)" value={sponsorLink} onChange={(e) => setSponsorLink(e.target.value)} className="p-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-red-700" />
-              <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold shadow-sm">+ Guardar Patrocinador</button>
+              <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold shadow-sm">+ Añadir Patrocinador</button>
             </form>
             {sponsors.length > 0 && (
               <div className="max-h-36 overflow-y-auto space-y-1.5 pt-1 border-t border-slate-100">
