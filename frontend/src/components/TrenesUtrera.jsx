@@ -53,17 +53,6 @@ export default function TrenesUtrera() {
     const siguientesSevilla = trenesFuturosSevilla.slice(1, 3);
     const minRestantesSevilla = obtenerMinutosRestantes(proximoSevilla.h, proximoSevilla.m) || 1;
 
-    // Lista maestra Hacia Cádiz / Lebrija
-    const listaSalidasCadiz = [
-        { hora: "08:58", destino: "Cádiz", via: "Vía 2", tipo: "Media Distancia", h: 8, m: 58 },
-        { hora: "10:23", destino: "Cádiz", via: "Vía 2", tipo: "Media Distancia", h: 10, m: 23 },
-        { hora: "11:31", destino: "Cádiz", via: "Vía 2", tipo: "Media Distancia", h: 11, m: 31 },
-    ];
-
-    const trenesFuturosCadiz = listaSalidasCadiz.filter(t => (t.h * 60 + t.m) >= minutosTotalesAhora);
-    const proximoCadiz = trenesFuturosCadiz[0] || listaSalidasCadiz[listaSalidasCadiz.length - 1];
-    const minRestantesCadiz = obtenerMinutosRestantes(proximoCadiz.h, proximoCadiz.m);
-
     const compartirWhatsApp = (tipo, destino, hora, detalle) => {
         const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. \n\n📍 Consultado en Utrerapp Live: https://utrerapp.com`);
         window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
@@ -181,13 +170,12 @@ export default function TrenesUtrera() {
                             ))}
                         </div>
 
-                        {/* BLOQUE NUEVO: EN EL MAPA (ESTILO ÉLITE) */}
+                        {/* BLOQUE: EN EL MAPA (SALIDAS) */}
                         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                             <h4 className="font-extrabold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
                                 🗺️ En el mapa
                             </h4>
                             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                                {/* Esquema visual de la línea C1 */}
                                 <div className="relative w-full sm:w-1/2 h-44 bg-white rounded-xl border border-slate-200 p-3 flex flex-col justify-between shadow-inner">
                                     <div className="absolute left-1/2 top-4 bottom-4 w-1 bg-blue-500 -translate-x-1/2 rounded-full"></div>
                                     
@@ -222,7 +210,7 @@ export default function TrenesUtrera() {
                 </div>
             )}
 
-            {/* VISTA 2: LLEGADAS A UTRERA */}
+            {/* VISTA 2: LLEGADAS A UTRERA (CON MAPA Y HOSPITAL VIRGEN DEL ROCÍO) */}
             {vistaActiva === 'llegadas' && (
                 <div className="space-y-4">
                     <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
@@ -258,7 +246,7 @@ export default function TrenesUtrera() {
                             </div>
 
                             <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-emerald-100">
-                                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Paso por Sevilla:</span>
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Paso por Sevilla y Hospital:</span>
                                 <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
                                     <span>Santa Justa (08:55)</span>
                                     <span>San Bernardo (08:58)</span>
@@ -280,6 +268,43 @@ export default function TrenesUtrera() {
                                 >
                                     💬 Avisar desde el Hospital
                                 </button>
+                            </div>
+                        </div>
+
+                        {/* BLOQUE NUEVO: EN EL MAPA (LLEGADAS / DESDE SEVILLA) */}
+                        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                            <h4 className="font-extrabold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
+                                🗺️ En el mapa (Trayecto Sevilla ➔ Utrera)
+                            </h4>
+                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                                <div className="relative w-full sm:w-1/2 h-44 bg-white rounded-xl border border-slate-200 p-3 flex flex-col justify-between shadow-inner">
+                                    <div className="absolute left-1/2 top-4 bottom-4 w-1 bg-emerald-500 -translate-x-1/2 rounded-full"></div>
+                                    
+                                    <div className="relative z-10 flex items-center justify-between text-[11px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                        <span>Santa Justa (Origen)</span>
+                                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse"></div>
+                                    </div>
+                                    <div className="relative z-10 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span>San Bernardo / Hospital</span>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-slate-400"></div>
+                                    </div>
+                                    <div className="relative z-10 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span>Dos Hermanas</span>
+                                        <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                    </div>
+                                    <div className="relative z-10 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span>Utrera (Destino)</span>
+                                        <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                    </div>
+                                </div>
+
+                                <div className="w-full sm:w-1/2 text-xs space-y-2">
+                                    <div className="bg-emerald-100/70 p-3 rounded-xl border border-emerald-200">
+                                        <span className="font-black text-emerald-900 block mb-0.5">🚆 Tren hacia Utrera (09:15)</span>
+                                        <p className="text-slate-700 font-medium">🟢 El tren desciende por el tramo norte acercándose al hospital y Dos Hermanas.</p>
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 font-semibold">📍 Actualización en tiempo real desde la red de Cercanías.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
