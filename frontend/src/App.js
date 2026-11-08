@@ -1,4 +1,4 @@
-// src/App.js
+// App.js     // src/App.js
 import React, { useState, useEffect } from 'react';
 // import { Analytics } from '@vercel/analytics/react';
 import Home from './pages/Home';
@@ -17,7 +17,8 @@ import Admin from './pages/Admin';
 import Tablon from './pages/Tablon';
 import Teatro from './pages/Teatro';
 import Noticias from './pages/Noticias';
-import { Store, MessageSquare, Gamepad2, Home as HomeIcon, Newspaper } from 'lucide-react';
+import TrenesUtrera from './components/TrenesUtrera';
+import { Store, MessageSquare, Gamepad2, Home as HomeIcon, Newspaper, Train } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 
 export default function App() {
@@ -70,6 +71,22 @@ export default function App() {
         return <Tablon setPaginaActual={setPaginaActual} />;
       case 'admin':
         return <Admin setPaginaActual={setPaginaActual} />;
+      case 'trenes':
+        return (
+          <div className="max-w-md mx-auto p-4 pb-24">
+            <div className="flex items-center justify-between mb-2 pt-2">
+              <button 
+                onClick={() => setPaginaActual('home')}
+                className="text-xs bg-slate-200 hover:bg-slate-300 px-3 py-1.5 rounded-lg font-medium text-slate-700 transition"
+              >
+                ← Volver
+              </button>
+              <h2 className="font-bold text-slate-800 text-sm">Estado del Tren</h2>
+              <div className="w-12"></div>
+            </div>
+            <TrenesUtrera />
+          </div>
+        );
       default:
         return <Home setPaginaActual={setPaginaActual} setTab={setPaginaActual} />;
     }
@@ -80,7 +97,7 @@ export default function App() {
       {renderizarPagina()}
 
       {/* BARRA DE NAVEGACIÓN INFERIOR */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 py-2.5 px-6 flex justify-around items-center z-50 shadow-lg max-w-md mx-auto rounded-t-3xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 flex justify-around items-center z-50 shadow-lg max-w-md mx-auto rounded-t-3xl">
         <button 
           onClick={() => setPaginaActual('home')}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'home' ? 'text-amber-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
@@ -98,19 +115,19 @@ export default function App() {
         </button>
 
         <button 
+          onClick={() => setPaginaActual('trenes')}
+          className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'trenes' ? 'text-blue-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          <Train size={20} />
+          <span className="text-[10px]">Trenes</span>
+        </button>
+
+        <button 
           onClick={() => setPaginaActual('tablon')}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'tablon' ? 'text-amber-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
         >
           <Newspaper size={20} />
           <span className="text-[10px]">Tablón</span>
-        </button>
-
-        <button 
-          onClick={() => setPaginaActual('pasatiempos')}
-          className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'pasatiempos' ? 'text-amber-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
-        >
-          <Gamepad2 size={20} />
-          <span className="text-[10px]">Juegos</span>
         </button>
 
         <button 
