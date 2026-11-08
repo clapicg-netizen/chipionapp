@@ -153,7 +153,23 @@ export default function TrenesUtrera() {
                                 </div>
                             </div>
 
-                            <p className="text-xs text-slate-600 italic mb-3">Empieza su recorrido en Utrera; suele esperar ya en la vía.</p>
+                            {/* MAPA / ESQUEMA DE PARADAS HACIA SEVILLA */}
+                            <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-sky-100">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Recorrido:</span>
+                                <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                                    <span className="text-sky-700 font-extrabold">Utrera</span>
+                                    <span>Dos Hermanas</span>
+                                    <span>San Bernardo</span>
+                                    <span>Santa Justa</span>
+                                </div>
+                                <div className="relative flex items-center justify-between px-3 pt-1">
+                                    <div className="absolute left-4 right-4 h-0.5 bg-sky-200 top-1/2 -translate-y-1/2 z-0"></div>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-sky-600 border-2 border-white shadow z-10"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
+                                </div>
+                            </div>
 
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">🚆 Vía 3</span>
@@ -198,7 +214,7 @@ export default function TrenesUtrera() {
                         </div>
                     </div>
 
-                    {/* SECCIÓN 2: HACIA LEBRIJA Y CÁDIZ (RECUPERADA) */}
+                    {/* SECCIÓN 2: HACIA LEBRIJA Y CÁDIZ (CON MAPA RESTAURADO) */}
                     <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-2.5 h-full bg-blue-600"></div>
                         <div className="flex justify-between items-center mb-4">
@@ -231,20 +247,21 @@ export default function TrenesUtrera() {
                                 </div>
                             </div>
 
-                            {/* Esquema visual de paradas */}
-                            <div className="my-3 px-2 py-2 bg-white/80 rounded-xl border border-blue-100">
-                                <div className="flex justify-between text-[10px] text-slate-500 font-bold mb-1 px-1">
-                                    <span>Utrera</span>
+                            {/* MAPA / ESQUEMA DE PARADAS HACIA CÁDIZ */}
+                            <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-blue-100">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Recorrido:</span>
+                                <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                                    <span className="text-blue-700 font-extrabold">Utrera</span>
                                     <span>Las Cabezas</span>
                                     <span>Lebrija</span>
-                                    <span className="text-blue-700 font-extrabold">Cádiz</span>
+                                    <span>Cádiz</span>
                                 </div>
-                                <div className="relative flex items-center justify-between px-2">
-                                    <div className="absolute left-3 right-3 h-0.5 bg-blue-200 top-1/2 -translate-y-1/2 z-0"></div>
-                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-600 z-10"></div>
+                                <div className="relative flex items-center justify-between px-3 pt-1">
+                                    <div className="absolute left-4 right-4 h-0.5 bg-blue-200 top-1/2 -translate-y-1/2 z-0"></div>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white shadow z-10"></div>
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
-                                    <div className="w-3.5 h-3.5 rounded-full bg-slate-300 border-2 border-white shadow z-10"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
                                 </div>
                             </div>
 
@@ -262,7 +279,7 @@ export default function TrenesUtrera() {
                 </div>
             )}
 
-            {/* VISTA 2: LLEGADAS A UTRERA */}
+            {/* VISTA 2: LLEGADAS A UTRERA (CON MAPA VIRGEN DEL ROCÍO) */}
             {vistaActiva === 'llegadas' && (
                 <div className="space-y-4">
                     <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
@@ -295,6 +312,7 @@ export default function TrenesUtrera() {
                                 </div>
                             </div>
 
+                            {/* MAPA / ESQUEMA DE PASO POR SEVILLA Y HOSPITAL */}
                             <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-emerald-100">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Paso por Sevilla:</span>
                                 <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
@@ -306,7 +324,7 @@ export default function TrenesUtrera() {
                                     <div className="absolute left-4 right-4 h-0.5 bg-emerald-200 top-1/2 -translate-y-1/2 z-0"></div>
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-300 z-10"></div>
-                                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow z-10"></div>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow z-10" title="Apeadero Hospital Virgen del Rocío"></div>
                                 </div>
                             </div>
 
