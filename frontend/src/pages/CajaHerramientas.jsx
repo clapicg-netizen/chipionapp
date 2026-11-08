@@ -7,13 +7,18 @@ export default function CajaHerramientas({ setPaginaActual }) {
     // Estado para sub-pestañas de estudio ('flash', 'repaso', 'pomodoro', 'enlaces')
     const [subEstudio, setSubEstudio] = useState('flash');
 
-    // Estados para PDF
+    // Estados para PDF (Texto y Archivo)
     const [textoPdf, setTextoPdf] = useState('');
+    const [archivoNombre, setArchivoNombre] = useState('');
 
-    // Estados para Costes / Autónomos
-    const [costeBase, setCosteBase] = useState('');
-    const [margenBeneficio, setMargenBeneficio] = useState('');
-    const [resultadoCostes, setResultadoCostes] = useState(null);
+    // --- ESTADOS PARA EL GENERADOR DE PRESUPUESTOS (AUTÓNOMOS) ---
+    const [emisor, setEmisor] = useState('');
+    const [cliente, setCliente] = useState('');
+    const [numPresupuesto, setNumPresupuesto] = useState('PRE-2026-001');
+    const [fechaPresupuesto, setFechaPresupuesto] = useState(new Date().toISOString().split('T')[0]);
+    const [conceptos, setConceptos] = useState([
+        { descripcion: '', cantidad: 1, precio: 0.00 }
+    ]);
 
     // Estados para Opositores y Estudiantes (Repaso Espaciado)
     const [fechaEstudio, setFechaEstudio] = useState('');
@@ -52,10 +57,19 @@ export default function CajaHerramientas({ setPaginaActual }) {
         return () => clearInterval(interval);
     }, [pomodoroActivo, tiempoPomodoro]);
 
-    // Generar PDF
+    // Manejar subida de archivo para PDF
+    const manejarSubidaArchivo = (e) => {
+        const archivo = e.target.files[0];
+        if (archivo) {
+            setArchivoNombre(archivo.name);
+            setTextoPdf(`Contenido cargado desde el archivo: ${archivo.name}`);
+        }
+    };
+
+    // Generar PDF (Conversor de texto/archivo)
     const generarPDFDesdeTexto = () => {
         if (!textoPdf.trim()) {
-            alert('Escribe algo de texto antes de generar el PDF.');
+            alert('Escribe o sube contenido antes de generar el PDF.');
             return;
         }
 
@@ -81,26 +95,30 @@ export default function CajaHerramientas({ setPaginaActual }) {
         doc.save('documento-utrerapp.pdf');
     };
 
-    // Calcular Margen
-    const calcularMargen = () => {
-        const coste = parseFloat(costeBase);
-        const margen = parseFloat(margenBeneficio);
-
-        if (isNaN(coste) || isNaN(margen)) {
-            alert('Introduce números válidos en ambos campos.');
-            return;
-        }
-
-        const precioVenta = coste / (1 - margen / 100);
-        const beneficio = precioVenta - coste;
-        const conIva = precioVenta * 1.21;
-
-        setResultadoCostes({
-            precioVenta: precioVenta.toFixed(2),
-            beneficio: beneficio.toFixed(2),
-            conIva: conIva.toFixed(2),
-        });
+    // --- LÓGICA DE PRESUPUESTOS (AUTÓNOMOS) ---
+    const agregarFilaConcepto = () => {
+        setConceptos([...conceptos, { descripcion: '', cantidad: 1, precio: 0.00 }]);
     };
+
+    const eliminarFilaConcepto = (index) => {
+        if (conceptos.length > 1) {
+            setConceptos(conceptos.filter((_, i) => i !== index));
+        }
+    };
+
+    const actualizarConcepto = (index, campo, valor) => {
+        const nuevosConceptos = [...conceptos];
+        nuevosConceptos[index][campo] = valor;
+        setConceptos(nuevosConceptos);
+    };
+
+    const calcularSubtotal = () => {
+        return conceptos.reduce((acc, item) => acc + (parseFloat(item.cantidad || 0) * parseFloat(item.precio || 0)), 0);
+    };
+
+    const subtotalPresupuesto = calcularSubtotal();
+    const ivaPresupuesto = subtotalPresupuesto * 0.21;
+    const totalPresupuesto = subtotalPresupuesto + ivaPresupuesto;
 
     // Calcular Repasos Espaciados
     const calcularRepasos = () => {
@@ -143,22 +161,17 @@ export default function CajaHerramientas({ setPaginaActual }) {
         setMostrandoRespuesta(false);
     };
 
-    const voltearTarjeta = () => {
-        setMostrandoRespuesta(!mostrandoRespuesta);
-    };
-
+    const voltearTarjeta = () => setMostrandoRespuesta(!mostrandoRespuesta);
     const tarjetaSiguiente = () => {
         if (flashcardsLista.length === 0) return;
         setIndiceActual((prev) => (prev + 1) % flashcardsLista.length);
         setMostrandoRespuesta(false);
     };
-
     const tarjetaAnterior = () => {
         if (flashcardsLista.length === 0) return;
         setIndiceActual((prev) => (prev - 1 + flashcardsLista.length) % flashcardsLista.length);
         setMostrandoRespuesta(false);
     };
-
     const borrarTarjetaActual = () => {
         if (flashcardsLista.length === 0) return;
         const nuevaLista = flashcardsLista.filter((_, idx) => idx !== indiceActual);
@@ -169,8 +182,9 @@ export default function CajaHerramientas({ setPaginaActual }) {
     };
 
     return (
-        <div className="p-4 max-w-xl mx-auto bg-white rounded-xl shadow-md my-4">
-            <div className="flex items-center space-x-3 mb-4">
+        <div className="p-4 max-w-2xl mx-auto bg-white rounded-xl shadow-md my-4">
+            {/* Mensaje de Bienvenida Principal (Restaurado) */}
+            <div className="flex items-center space-x-3 mb-4 border-b pb-3">
                 <span className="text-3xl">🛠️</span>
                 <div>
                     <h2 className="text-xl font-bold text-gray-800">Caja de Herramientas Útiles</h2>
@@ -190,7 +204,7 @@ export default function CajaHerramientas({ setPaginaActual }) {
                     onClick={() => setPestanaActiva('costes')}
                     className={`py-2 px-4 font-semibold text-sm whitespace-nowrap flex items-center space-x-1 ${pestanaActiva === 'costes' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                 >
-                    <span>🧮</span> <span>Autónomos</span>
+                    <span>🧮</span> <span>Autónomos (Presupuestos)</span>
                 </button>
                 <button
                     onClick={() => setPestanaActiva('estudio')}
@@ -204,15 +218,24 @@ export default function CajaHerramientas({ setPaginaActual }) {
             {pestanaActiva === 'pdf' && (
                 <div className="space-y-3">
                     <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg mb-3">
-                        <p className="text-xs font-bold text-blue-900">📄 Conversor exprés de Texto a PDF</p>
-                        <p className="text-[11px] text-blue-700">Escribe o pega tus notas, apuntes o presupuestos y descárgalos al instante.</p>
+                        <p className="text-xs font-bold text-blue-900">📄 Conversor de Documentos a PDF</p>
+                        <p className="text-[11px] text-blue-700">Sube tu archivo Word/texto o escribe directamente para generar un PDF al instante.</p>
                     </div>
+
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center bg-gray-50">
+                        <label className="cursor-pointer text-xs text-blue-600 font-semibold block">
+                            📁 Subir documento o Word (.docx, .txt)
+                            <input type="file" accept=".docx,.txt,.doc" onChange={manejarSubidaArchivo} className="hidden" />
+                        </label>
+                        {archivoNombre && <p className="text-[11px] text-emerald-600 mt-1">Archivo cargado: {archivoNombre}</p>}
+                    </div>
+
                     <textarea
                         value={textoPdf}
                         onChange={(e) => setTextoPdf(e.target.value)}
                         rows="4"
                         className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs"
-                        placeholder="Escribe aquí tus apuntes o texto..."
+                        placeholder="O escribe aquí tus apuntes, notas o presupuesto..."
                     />
                     <button
                         onClick={generarPDFDesdeTexto}
@@ -223,50 +246,139 @@ export default function CajaHerramientas({ setPaginaActual }) {
                 </div>
             )}
 
-            {/* 2. SECCIÓN AUTÓNOMOS */}
+            {/* 2. SECCIÓN AUTÓNOMOS (Generador de Presupuestos) */}
             {pestanaActiva === 'costes' && (
-                <div className="space-y-3">
-                    <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg mb-3">
-                        <p className="text-xs font-bold text-emerald-900">🧮 Calculadora de Costes y Márgenes</p>
-                        <p className="text-[11px] text-emerald-700">Calcula precios de venta, beneficios netos e IVA estimado para tus trabajos.</p>
+                <div className="space-y-4">
+                    <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg">
+                        <p className="text-xs font-bold text-emerald-900">🧮 Generador de Presupuestos Express</p>
+                        <p className="text-[11px] text-emerald-700">Crea presupuestos limpios y profesionales para tus clientes al vuelo.</p>
                     </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-[11px] font-medium text-gray-700 mb-1">Coste base (€)</label>
-                            <input
-                                type="number"
-                                value={costeBase}
-                                onChange={(e) => setCosteBase(e.target.value)}
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Datos del Emisor (Tus datos)</label>
+                            <textarea
+                                value={emisor}
+                                onChange={(e) => setEmisor(e.target.value)}
+                                rows="3"
                                 className="w-full p-2 border rounded-lg text-xs"
-                                placeholder="Ej: 50"
+                                placeholder="Nombre / Empresa&#10;NIF: 00000000X&#10;Dirección y contacto"
                             />
                         </div>
                         <div>
-                            <label className="block text-[11px] font-medium text-gray-700 mb-1">Margen de beneficio (%)</label>
-                            <input
-                                type="number"
-                                value={margenBeneficio}
-                                onChange={(e) => setMargenBeneficio(e.target.value)}
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Datos del Cliente</label>
+                            <textarea
+                                value={cliente}
+                                onChange={(e) => setCliente(e.target.value)}
+                                rows="3"
                                 className="w-full p-2 border rounded-lg text-xs"
-                                placeholder="Ej: 30"
+                                placeholder="Nombre del cliente&#10;NIF / CIF&#10;Dirección"
                             />
                         </div>
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Nº de Presupuesto</label>
+                            <input
+                                type="text"
+                                value={numPresupuesto}
+                                onChange={(e) => setNumPresupuesto(e.target.value)}
+                                className="w-full p-2 border rounded-lg text-xs"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Fecha</label>
+                            <input
+                                type="date"
+                                value={fechaPresupuesto}
+                                onChange={(e) => setFechaPresupuesto(e.target.value)}
+                                className="w-full p-2 border rounded-lg text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-gray-800 mt-4 mb-2">Conceptos</h3>
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-200 text-xs">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="border p-2 text-left">Descripción</th>
+                                    <th className="border p-2 w-20 text-center">Cantidad</th>
+                                    <th className="border p-2 w-24 text-center">Precio (€)</th>
+                                    <th className="border p-2 w-24 text-center">Total</th>
+                                    <th className="border p-2 w-12 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {conceptos.map((item, index) => {
+                                    const totalFila = (parseFloat(item.cantidad || 0) * parseFloat(item.precio || 0)).toFixed(2);
+                                    return (
+                                        <tr key={index}>
+                                            <td className="border p-1">
+                                                <input
+                                                    type="text"
+                                                    value={item.descripcion}
+                                                    onChange={(e) => actualizarConcepto(index, 'descripcion', e.target.value)}
+                                                    placeholder="Descripción del servicio o producto"
+                                                    className="w-full p-1 border-0 text-xs outline-none"
+                                                />
+                                            </td>
+                                            <td className="border p-1">
+                                                <input
+                                                    type="number"
+                                                    value={item.cantidad}
+                                                    min="1"
+                                                    onChange={(e) => actualizarConcepto(index, 'cantidad', e.target.value)}
+                                                    className="w-full p-1 border-0 text-xs text-center outline-none"
+                                                />
+                                            </td>
+                                            <td className="border p-1">
+                                                <input
+                                                    type="number"
+                                                    value={item.precio}
+                                                    step="0.01"
+                                                    onChange={(e) => actualizarConcepto(index, 'precio', e.target.value)}
+                                                    className="w-full p-1 border-0 text-xs text-center outline-none"
+                                                />
+                                            </td>
+                                            <td className="border p-2 text-right font-medium">{totalFila} €</td>
+                                            <td className="border p-1 text-center">
+                                                <button
+                                                    onClick={() => eliminarFilaConcepto(index)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px]"
+                                                >
+                                                    X
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
                     <button
-                        onClick={calcularMargen}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition"
+                        onClick={agregarFilaConcepto}
+                        className="bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition mt-2"
                     >
-                        Calcular Precio Final 🧮
+                        + Añadir Concepto
                     </button>
 
-                    {resultadoCostes && (
-                        <div className="p-3 bg-gray-50 rounded-lg text-xs space-y-1">
-                            <p className="font-bold text-gray-800">Resultados:</p>
-                            <p>• Venta (sin IVA): <strong className="text-blue-600">{resultadoCostes.precioVenta} €</strong></p>
-                            <p>• Beneficio: <strong className="text-emerald-600">{resultadoCostes.beneficio} €</strong></p>
-                            <p>• Con IVA (21%): <strong className="text-gray-900">{resultadoCostes.conIva} €</strong></p>
-                        </div>
-                    )}
+                    <div className="text-right text-xs space-y-1 bg-gray-50 p-3 rounded-lg border">
+                        <p>Subtotal: <strong>{subtotalPresupuesto.toFixed(2)} €</strong></p>
+                        <p>IVA (21%): <strong>{ivaPresupuesto.toFixed(2)} €</strong></p>
+                        <p className="text-sm font-bold text-emerald-700">Total: <span>{totalPresupuesto.toFixed(2)} €</span></p>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <button
+                            onClick={() => window.print()}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-lg transition"
+                        >
+                            Imprimir / Guardar PDF 🖨️
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -274,8 +386,8 @@ export default function CajaHerramientas({ setPaginaActual }) {
             {pestanaActiva === 'estudio' && (
                 <div className="space-y-3">
                     <div className="bg-purple-50 border-l-4 border-purple-500 p-3 rounded-r-lg mb-3">
-                        <p className="text-xs font-bold text-purple-900">🎓 Kit Integral para Opositores y Estudiantes</p>
-                        <p className="text-[11px] text-purple-700">Flashcards con memoria local, planificación de repasos, temporizador y recursos.</p>
+                        <p className="text-xs font-bold text-purple-900">🎓 Kit Avanzado de Estudio y Oposiciones</p>
+                        <p className="text-[11px] text-purple-700">Flashcards con persistencia local, repasos espaciados, pomodoro y recursos.</p>
                     </div>
 
                     {/* Sub-pestañas internas */}
