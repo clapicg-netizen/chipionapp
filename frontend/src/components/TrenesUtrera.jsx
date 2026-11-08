@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 export default function TrenesUtrera() {
     const [tiempoActual, setTiempoActual] = useState(new Date());
     const [cargando, setCargando] = useState(false);
+    const [vistaActiva, setVistaActiva] = useState('sevilla'); // 'sevilla', 'cadiz', o 'llegadas'
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -68,13 +69,26 @@ export default function TrenesUtrera() {
     const siguientesCadiz = trenesFuturosCadiz.slice(1);
     const minRestantesCadiz = obtenerMinutosRestantes(proximoCadiz.h, proximoCadiz.m);
 
+    // --- LISTA MAESTRA: LLEGADAS A UTRERA (DESDE SEVILLA/NORTE) ---
+    const listaLlegadasUtrera = [
+        { hora: "09:25", origen: "Sevilla - Santa Justa", via: "Vía 2", tipo: "Cercanías C1", h: 9, m: 25, estado: "A su hora" },
+        { hora: "10:15", origen: "Lora del Río", via: "Vía 2", tipo: "Cercanías C1", h: 10, m: 15, estado: "A su hora" },
+        { hora: "11:10", origen: "Sevilla - Santa Justa", via: "Vía 2", tipo: "Cercanías C1", h: 11, m: 10, estado: "Previsto" },
+        { hora: "12:05", origen: "Lora del Río", via: "Vía 2", tipo: "Cercanías C1", h: 12, m: 5, estado: "Previsto" },
+    ];
+
+    const trenesFuturosLlegadas = listaLlegadasUtrera.filter(t => (t.h * 60 + t.m) >= minutosTotalesAhora);
+    const proximaLlegada = trenesFuturosLlegadas[0] || listaLlegadasUtrera[listaLlegadasUtrera.length - 1];
+    const siguientesLlegadas = trenesFuturosLlegadas.slice(1);
+    const minRestantesLlegada = obtenerMinutosRestantes(proximaLlegada.h, proximaLlegada.m) || 1;
+
     const compartirWhatsApp = (tipo, destino, hora, detalle) => {
         const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. \n\n📍 Consultado en Utrerapp Live: https://utrerapp.com`);
         window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
     };
 
     return (
-        <div className="space-y-6 font-sans pb-16 max-w-xl mx-auto">
+        <div className="space-y-4 font-sans pb-16 max-w-xl mx-auto">
             {/* Cabecera en directo */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 rounded-3xl shadow-md text-white flex justify-between items-center border border-slate-700">
                 <div>
@@ -93,145 +107,246 @@ export default function TrenesUtrera() {
                 </button>
             </div>
 
-            {/* CONTENEDOR PRINCIPAL: AMBAS DIRECCIONES VISIBLES A LA VEZ */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* TARJETA 1: HACIA SEVILLA */}
-                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-between">
-                    <div className="absolute top-0 left-0 w-2.5 h-full bg-amber-600"></div>
-                    <div>
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-1.5">
-                                <span>📍 Hacia Sevilla</span>
-                            </h3>
-                            <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">C1</span>
-                        </div>
-
-                        <div className="bg-amber-50/60 rounded-2xl p-4 border border-amber-200/80 mb-4 shadow-sm">
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <span className="text-[11px] text-slate-500 font-semibold block">Próximo servicio</span>
-                                    <h4 className="text-lg font-black text-slate-900">{proximoSevilla.destino}</h4>
-                                    <span className="text-[11px] text-slate-600 font-medium">el de las {proximoSevilla.hora}</span>
-                                </div>
-                                <span className="bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold">{proximoSevilla.estado}</span>
-                            </div>
-
-                            <div className="my-2.5 py-2.5 border-y border-amber-200/60 flex items-baseline justify-between">
-                                <div>
-                                    <span className="text-3xl font-black text-slate-900 tracking-tight">
-                                        {minRestantesSevilla}-{minRestantesSevilla + 4}
-                                    </span>
-                                    <span className="text-xs font-bold text-slate-600 ml-1">min</span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] text-slate-500 block font-medium">Salida prevista</span>
-                                    <span className="text-xs font-bold text-amber-900">{proximoSevilla.hora}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-1">
-                                <span className="text-[11px] bg-slate-900 text-white px-2.5 py-1 rounded-xl font-bold">
-                                    🚆 {proximoSevilla.via}
-                                </span>
-                                <button 
-                                    onClick={() => compartirWhatsApp("hacia", proximoSevilla.destino, proximoSevilla.hora, "Sale en breve")}
-                                    className="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-bold transition shadow flex items-center gap-1"
-                                >
-                                    💬 Avisar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Lista Después Sevilla */}
-                    {siguientesSevilla.length > 0 && (
-                        <div className="space-y-1.5 mt-2">
-                            <span className="font-extrabold text-slate-900 text-[11px] uppercase tracking-wider block mb-1">Después</span>
-                            {siguientesSevilla.map((t, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="font-extrabold text-slate-900">{t.hora}</span>
-                                        <div>
-                                            <span className="font-bold text-slate-800 text-[11px]">{t.destino}</span>
-                                            <span className="text-[9px] text-slate-400">{t.via}</span>
-                                        </div>
-                                    </div>
-                                    <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">{t.estado}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* TARJETA 2: HACIA CÁDIZ / LEBRIJA */}
-                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-between">
-                    <div className="absolute top-0 left-0 w-2.5 h-full bg-blue-600"></div>
-                    <div>
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-1.5">
-                                <span>📍 Hacia Cádiz / Lebrija</span>
-                            </h3>
-                            <span className="text-[11px] bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded-full font-bold">MD / C1</span>
-                        </div>
-
-                        <div className="bg-blue-50/60 rounded-2xl p-4 border border-blue-200/80 mb-4 shadow-sm">
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <span className="text-[11px] text-slate-500 font-semibold block">Próximo servicio</span>
-                                    <h4 className="text-lg font-black text-slate-900">{proximoCadiz.destino}</h4>
-                                    <span className="text-[11px] text-slate-600 font-medium">el de las {proximoCadiz.hora}</span>
-                                </div>
-                                <span className="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold">{proximoCadiz.estado}</span>
-                            </div>
-
-                            <div className="my-2.5 py-2.5 border-y border-blue-200/60 flex items-baseline justify-between">
-                                <div>
-                                    <span className="text-3xl font-black text-slate-900 tracking-tight">
-                                        {minRestantesCadiz !== null ? `${minRestantesCadiz}` : "Ya"}
-                                    </span>
-                                    <span className="text-xs font-bold text-slate-600 ml-1">{minRestantesCadiz !== null ? "min" : "en Utrera"}</span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] text-slate-500 block font-medium">Hora estimada</span>
-                                    <span className="text-xs font-bold text-blue-900">{proximoCadiz.hora}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-1">
-                                <span className="text-[11px] bg-slate-900 text-white px-2.5 py-1 rounded-xl font-bold">{proximoCadiz.tipo}</span>
-                                <button 
-                                    onClick={() => compartirWhatsApp("hacia", proximoCadiz.destino, proximoCadiz.hora, "En servicio")}
-                                    className="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-bold transition shadow flex items-center gap-1"
-                                >
-                                    💬 Avisar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Lista Después Cádiz */}
-                    {siguientesCadiz.length > 0 && (
-                        <div className="space-y-1.5 mt-2">
-                            <span className="font-extrabold text-slate-900 text-[11px] uppercase tracking-wider block mb-1">Después</span>
-                            {siguientesCadiz.map((t, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="font-extrabold text-slate-900">{t.hora}</span>
-                                        <div>
-                                            <span className="font-bold text-slate-800 text-[11px]">{t.destino}</span>
-                                            <span className="text-[9px] text-slate-400">{t.via}</span>
-                                        </div>
-                                    </div>
-                                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${t.estado.includes('tarde') ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'}`}>
-                                        {t.estado}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+            {/* SELECTOR DE PESTAÑAS (SEVILLA / CÁDIZ / LLEGADAS) */}
+            <div className="bg-slate-200/80 p-1.5 rounded-2xl flex gap-1 shadow-inner">
+                <button
+                    onClick={() => setVistaActiva('sevilla')}
+                    className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm ${
+                        vistaActiva === 'sevilla' 
+                            ? 'bg-white text-slate-900 shadow' 
+                            : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                    📍 Hacia Sevilla
+                </button>
+                <button
+                    onClick={() => setVistaActiva('cadiz')}
+                    className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm ${
+                        vistaActiva === 'cadiz' 
+                            ? 'bg-white text-slate-900 shadow' 
+                            : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                    📍 Hacia Cádiz / Lebrija
+                </button>
+                <button
+                    onClick={() => setVistaActiva('llegadas')}
+                    className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm ${
+                        vistaActiva === 'llegadas' 
+                            ? 'bg-white text-slate-900 shadow' 
+                            : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                    📥 Llegadas a Utrera
+                </button>
             </div>
+
+            {/* VISTA 1: HACIA SEVILLA (PRINCIPAL) */}
+            {vistaActiva === 'sevilla' && (
+                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2.5 h-full bg-amber-600"></div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                            <span>📍 Hacia Sevilla (Principal)</span>
+                        </h3>
+                        <span className="text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-bold">Cercanías C1</span>
+                    </div>
+
+                    <div className="bg-amber-50/60 rounded-2xl p-5 border border-amber-200/80 mb-4 shadow-sm">
+                        <div className="flex justify-between items-start mb-3">
+                            <div>
+                                <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
+                                <h4 className="text-xl font-black text-slate-900">{proximoSevilla.destino}</h4>
+                                <span className="text-xs text-slate-600 font-medium">el de las {proximoSevilla.hora}</span>
+                            </div>
+                            <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">{proximoSevilla.estado}</span>
+                        </div>
+
+                        <div className="my-3 py-3 border-y border-amber-200/60 flex items-baseline justify-between">
+                            <div>
+                                <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                                    {minRestantesSevilla}-{minRestantesSevilla + 4}
+                                </span>
+                                <span className="text-sm font-bold text-slate-600 ml-1">min</span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[11px] text-slate-500 block font-medium">Salida prevista</span>
+                                <span className="text-sm font-bold text-amber-900">{proximoSevilla.hora}</span>
+                            </div>
+                        </div>
+
+                        <p className="text-xs text-slate-600 italic mb-3">"Empieza su recorrido en Utrera; suele esperar ya en la vía."</p>
+
+                        <div className="flex items-center justify-between pt-2">
+                            <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">
+                                🚆 {proximoSevilla.via}
+                            </span>
+                            <button 
+                                onClick={() => compartirWhatsApp("hacia", proximoSevilla.destino, proximoSevilla.hora, "Sale en breve")}
+                                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
+                            >
+                                💬 Avisar
+                            </button>
+                        </div>
+                    </div>
+
+                    {siguientesSevilla.length > 0 && (
+                        <div className="space-y-2">
+                            <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-2">Después</h4>
+                            <div className="space-y-2">
+                                {siguientesSevilla.map((t, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-extrabold text-slate-900 text-sm">{t.hora}</span>
+                                            <div>
+                                                <span className="font-bold text-slate-800 block">{t.destino}</span>
+                                                <span className="text-[10px] text-slate-400">{t.via} • {t.tipo}</span>
+                                            </div>
+                                        </div>
+                                        <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">{t.estado}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* VISTA 2: HACIA CÁDIZ / LEBRIJA */}
+            {vistaActiva === 'cadiz' && (
+                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2.5 h-full bg-blue-600"></div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                            <span>📍 Hacia Cádiz / Lebrija</span>
+                        </h3>
+                        <span className="text-xs bg-blue-100 text-blue-900 px-3 py-1 rounded-full font-bold">Media Distancia / C1</span>
+                    </div>
+
+                    <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-200/80 mb-4 shadow-sm">
+                        <div className="flex justify-between items-start mb-3">
+                            <div>
+                                <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
+                                <h4 className="text-xl font-black text-slate-900">{proximoCadiz.destino}</h4>
+                                <span className="text-xs text-slate-600 font-medium">el de las {proximoCadiz.hora}</span>
+                            </div>
+                            <span className="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold">{proximoCadiz.estado}</span>
+                        </div>
+
+                        <div className="my-3 py-3 border-y border-blue-200/60 flex items-baseline justify-between">
+                            <div>
+                                <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                                    {minRestantesCadiz !== null ? `${minRestantesCadiz}` : "Ya"}
+                                </span>
+                                <span className="text-sm font-bold text-slate-600 ml-1">{minRestantesCadiz !== null ? "min" : "en Utrera"}</span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[11px] text-slate-500 block font-medium">Hora estimada</span>
+                                <span className="text-sm font-bold text-blue-900">{proximoCadiz.hora}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                            <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">{proximoCadiz.tipo}</span>
+                            <button 
+                                onClick={() => compartirWhatsApp("hacia", proximoCadiz.destino, proximoCadiz.hora, "En servicio")}
+                                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
+                            >
+                                💬 Avisar
+                            </button>
+                        </div>
+                    </div>
+
+                    {siguientesCadiz.length > 0 && (
+                        <div className="space-y-2">
+                            <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-2">Después</h4>
+                            <div className="space-y-2">
+                                {siguientesCadiz.map((t, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-extrabold text-slate-900 text-sm">{t.hora}</span>
+                                            <div>
+                                                <span className="font-bold text-slate-800 block">{t.destino}</span>
+                                                <span className="text-[10px] text-slate-400">{t.via} • {t.tipo}</span>
+                                            </div>
+                                        </div>
+                                        <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${t.estado.includes('tarde') ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'}`}>
+                                            {t.estado}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* VISTA 3: LLEGADAS A UTRERA */}
+            {vistaActiva === 'llegadas' && (
+                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2.5 h-full bg-emerald-600"></div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                            <span>📥 Llegadas a Utrera</span>
+                        </h3>
+                        <span className="text-xs bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full font-bold">En tránsito</span>
+                    </div>
+
+                    <div className="bg-emerald-50/60 rounded-2xl p-5 border border-emerald-200/80 mb-4 shadow-sm">
+                        <div className="flex justify-between items-start mb-3">
+                            <div>
+                                <span className="text-xs text-slate-500 font-semibold block">Próxima llegada</span>
+                                <h4 className="text-xl font-black text-slate-900">{proximaLlegada.origen}</h4>
+                                <span className="text-xs text-slate-600 font-medium">a las {proximaLlegada.hora}</span>
+                            </div>
+                            <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">{proximaLlegada.estado}</span>
+                        </div>
+
+                        <div className="my-3 py-3 border-y border-emerald-200/60 flex items-baseline justify-between">
+                            <div>
+                                <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                                    {minRestantesLlegada}
+                                </span>
+                                <span className="text-sm font-bold text-slate-600 ml-1">min</span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[11px] text-slate-500 block font-medium">Hora de llegada</span>
+                                <span className="text-sm font-bold text-emerald-900">{proximaLlegada.hora}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                            <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">{proximaLlegada.via} • {proximaLlegada.tipo}</span>
+                            <button 
+                                onClick={() => compartirWhatsApp("llegada desde", proximaLlegada.origen, proximaLlegada.hora, "Llega en breve")}
+                                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
+                            >
+                                💬 Avisar
+                            </button>
+                        </div>
+                    </div>
+
+                    {siguientesLlegadas.length > 0 && (
+                        <div className="space-y-2">
+                            <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-2">Próximas Llegadas</h4>
+                            <div className="space-y-2">
+                                {siguientesLlegadas.map((t, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-extrabold text-slate-900 text-sm">{t.hora}</span>
+                                            <div>
+                                                <span className="font-bold text-slate-800 block">Desde {t.origen}</span>
+                                                <span className="text-[10px] text-slate-400">{t.via} • {t.tipo}</span>
+                                            </div>
+                                        </div>
+                                        <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">{t.estado}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="text-center pt-2">
                 <span className="text-xs text-slate-400 font-bold">Utrerapp Live • Excelencia en Movilidad</span>
