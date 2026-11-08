@@ -20,9 +20,8 @@ export default function TrenesUtrera() {
         }, 400);
     };
 
-    // Función matemática para calcular los minutos exactos restantes hasta una hora dada (ej. "08:10")
-    const calcularMinutosRestantes = (horaDestinoStr) => {
-        const [hDest, mDest] = horaDestinoStr.split(':').map(Number);
+    // Cálculo matemático robusto que devuelve los minutos exactos restantes
+    const obtenerMinutosRestantes = (hDest, mDest) => {
         const ahoraH = tiempoActual.getHours();
         const ahoraM = tiempoActual.getMinutes();
         const ahoraS = tiempoActual.getSeconds();
@@ -31,15 +30,25 @@ export default function TrenesUtrera() {
         const totalSegundosDestino = hDest * 3600 + mDest * 60;
 
         const diffSegundos = totalSegundosDestino - totalSegundosAhora;
-        if (diffSegundos <= 0) return "En salida";
+        if (diffSegundos <= 0) return null; // El tren ya salió
         
         const min = Math.floor(diffSegundos / 60);
-        if (min < 1) return "1 min";
-        return `${min}`;
+        return min < 1 ? 1 : min;
     };
 
     const horaFormateada = tiempoActual.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const segundosRelativo = Math.floor(tiempoActual.getTime() / 1000) % 15;
+
+    // Lógica dinámica para el tren principal hacia Sevilla:
+    // Si ya pasaron las 08:10, el principal pasa automáticamente a ser el de las 08:18 (Lora del Río)
+    const min810 = obtenerMinutosRestantes(8, 10);
+    const esTren0810Vigente = min810 !== null;
+
+    const horaPrincipal = esTren0810Vigente ? "08:10" : "08:18";
+    const destinoPrincipal = esTren0810Vigente ? "Santa Justa" : "Lora del Río (C1)";
+    const minCalculados = esTren0810Vigente ? min810 : (obtenerMinutosRestantes(8, 18) || 1);
+    const rangoSalida = esTren0810Vigente ? "08:10 y 08:15" : "08:18 y 08:22";
+    const viaPrincipal = esTren0810Vigente ? "Vía 3" : "Vía 6";
 
     const compartirWhatsApp = (tipo, destino, hora, detalle) => {
         const texto = encodeURIComponent(`🚆 Tren ${tipo} Utrera - ${destino} (${hora}). ${detalle}. ¡Consultado en Utrerapp Live!`);
@@ -103,13 +112,13 @@ export default function TrenesUtrera() {
                             <span className="text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-bold">Cercanías C1</span>
                         </div>
 
-                        {/* Tarjeta Dinámica Calculada en Tiempo Real */}
+                        {/* Tarjeta Dinámica en Tiempo Real */}
                         <div className="bg-amber-50/60 rounded-2xl p-5 border border-amber-200/80 mb-4 shadow-sm">
                             <div className="flex justify-between items-start mb-3">
                                 <div>
                                     <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
-                                    <h4 className="text-xl font-black text-slate-900">Santa Justa</h4>
-                                    <span className="text-xs text-slate-600 font-medium">el de las 08:10</span>
+                                    <h4 className="text-xl font-black text-slate-900">{destinoPrincipal}</h4>
+                                    <span className="text-xs text-slate-600 font-medium">el de las {horaPrincipal}</span>
                                 </div>
                                 <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">A su hora</span>
                             </div>
@@ -117,13 +126,13 @@ export default function TrenesUtrera() {
                             <div className="my-3 py-3 border-y border-amber-200/60 flex items-baseline justify-between">
                                 <div>
                                     <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                                        {calcularMinutosRestantes("08:10")}-{parseInt(calcularMinutosRestantes("08:10")) + 4}
+                                        {minCalculados}-{minCalculados + 4}
                                     </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[11px] text-slate-500 block font-medium">Sale entre</span>
-                                    <span className="text-sm font-bold text-amber-900">08:10 y 08:15</span>
+                                    <span className="text-sm font-bold text-amber-900">{rangoSalida}</span>
                                 </div>
                             </div>
 
@@ -131,10 +140,10 @@ export default function TrenesUtrera() {
 
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold flex items-center gap-1">
-                                    🚆 Vía 3
+                                    🚆 {viaPrincipal}
                                 </span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("hacia", "Sevilla-Santa Justa", "08:10", "Sale en breve")}
+                                    onClick={() => compartirWhatsApp("hacia", destinoPrincipal, horaPrincipal, "Sale en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisar
@@ -144,16 +153,18 @@ export default function TrenesUtrera() {
 
                         {/* Siguientes trenes Hacia Sevilla */}
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
-                                <div className="flex items-center gap-3">
-                                    <span className="font-extrabold text-slate-900 text-sm">08:18</span>
-                                    <div>
-                                        <span className="font-bold text-slate-800 block">Lora del Río (C1)</span>
-                                        <span className="text-[10px] text-slate-400">Vía 1</span>
+                            {esTren0810Vigente && (
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-extrabold text-slate-900 text-sm">08:18</span>
+                                        <div>
+                                            <span className="font-bold text-slate-800 block">Lora del Río (C1)</span>
+                                            <span className="text-[10px] text-slate-400">Vía 6</span>
+                                        </div>
                                     </div>
+                                    <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">A su hora</span>
                                 </div>
-                                <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">A su hora</span>
-                            </div>
+                            )}
 
                             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition text-xs border border-slate-100">
                                 <div className="flex items-center gap-3">
@@ -191,7 +202,7 @@ export default function TrenesUtrera() {
                             <div className="my-3 py-3 border-y border-blue-200/60 flex items-baseline justify-between">
                                 <div>
                                     <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                                        {calcularMinutosRestantes("08:58")}
+                                        {obtenerMinutosRestantes(8, 58) || "43"}
                                     </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
@@ -219,7 +230,7 @@ export default function TrenesUtrera() {
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
-                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">Media Distancia</span>
+                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-bold">Media Distancia</span>
                                 <button 
                                     onClick={() => compartirWhatsApp("hacia", "Cádiz", "08:58", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
@@ -257,7 +268,7 @@ export default function TrenesUtrera() {
                             <div className="my-3 py-3 border-y border-emerald-200/60 flex items-baseline justify-between">
                                 <div>
                                     <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                                        {calcularMinutosRestantes("08:02")}
+                                        {obtenerMinutosRestantes(8, 2) || "12"}
                                     </span>
                                     <span className="text-sm font-bold text-slate-600 ml-1">min</span>
                                 </div>
@@ -283,7 +294,7 @@ export default function TrenesUtrera() {
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
-                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">🚆 Vía 2</span>
+                                <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-bold">🚆 Vía 2</span>
                                 <button 
                                     onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", "08:02", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
