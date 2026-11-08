@@ -26,7 +26,14 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
   const [subiendo, setSubiendo] = useState(false);
 
   // Estados para Patrocinadores de la Guía
-  const [sponsors, setSponsors] = useState([]);
+  const [sponsors, setSponsors] = useState([
+    {
+      id: "mocaibo-1",
+      name: "Cafés Mocaibo",
+      logo_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
+      link: "https://mocaibo.com"
+    }
+  ]);
   const [currentIndexSponsor, setCurrentIndexSponsor] = useState(0);
 
   // Formulario de edición/creación completo con Redes Sociales, Galería y Datos Especiales (JSON)
@@ -97,11 +104,11 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
   const cargarSponsors = async () => {
     try {
       const { data, error } = await supabase.from('sponsors').select('*').eq('active', true);
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         setSponsors(data);
       }
     } catch (e) {
-      console.log("Tabla sponsors pendiente en Supabase");
+      console.log("Usando patrocinador por defecto");
     }
   };
 
@@ -261,7 +268,7 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
     }
   };
 
-  const currentSponsor = sponsors.length > 0 ? sponsors[currentIndexSponsor] : null;
+  const currentSponsor = sponsors[currentIndexSponsor] || sponsors[0];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-28 text-slate-800 font-sans">
@@ -297,42 +304,38 @@ export default function GuiaComercial({ categoriaInicial = "Todos" }) {
 
       <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
 
-        {/* MÓDULO DE PATROCINADORES OFICIALES (100% PÚBLICO Y LIMPIO) */}
-        {sponsors.length > 0 && (
-          <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
-                ⭐ Patrocinadores Oficiales
-              </span>
-            </div>
+        {/* MÓDULO DE PATROCINADORES OFICIALES CON CARRUSEL */}
+        <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
+              ⭐ Patrocinadores Oficiales
+            </span>
+          </div>
 
-            {currentSponsor && (
-              <div className="bg-gradient-to-r from-amber-50 to-red-50 border border-amber-200/60 rounded-xl p-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <img 
-                    src={currentSponsor.logo_url} 
-                    alt={currentSponsor.name} 
-                    className="w-10 h-10 object-cover rounded-lg border border-slate-200 flex-shrink-0" 
-                  />
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-slate-900 text-xs truncate">{currentSponsor.name}</h4>
-                    <span className="text-[9px] text-amber-700 font-medium">Patrocinador ({currentIndexSponsor + 1}/{sponsors.length})</span>
-                  </div>
-                </div>
-                {currentSponsor.link && (
-                  <a 
-                    href={currentSponsor.link} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex-shrink-0 ml-2"
-                  >
-                    Visitar
-                  </a>
-                )}
+          <div className="bg-gradient-to-r from-amber-50 to-red-50 border border-amber-200/60 rounded-xl p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img 
+                src={currentSponsor.logo_url} 
+                alt={currentSponsor.name} 
+                className="w-10 h-10 object-cover rounded-lg border border-slate-200 flex-shrink-0" 
+              />
+              <div className="min-w-0">
+                <h4 className="font-bold text-slate-900 text-xs truncate">{currentSponsor.name}</h4>
+                <span className="text-[9px] text-amber-700 font-medium">Patrocinador ({currentIndexSponsor + 1}/{sponsors.length})</span>
               </div>
+            </div>
+            {currentSponsor.link && (
+              <a 
+                href={currentSponsor.link} 
+                target="_blank" 
+                rel="noreferrer"
+                className="bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex-shrink-0 ml-2"
+              >
+                Visitar
+              </a>
             )}
           </div>
-        )}
+        </div>
 
         {/* CATEGORÍAS */}
         <div className="space-y-2">
