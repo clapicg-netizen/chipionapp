@@ -27,10 +27,19 @@ export default function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    
+    // Detectar si se entra con enlace directo de comercio
     const idComercio = params.get('id');
     if (idComercio) {
       setComercioIdUrl(idComercio);
       setPaginaActual('panel-comercio');
+      return;
+    }
+
+    // Detectar si se entra con enlace directo a trenes desde WhatsApp
+    const vistaParam = params.get('vista');
+    if (vistaParam === 'trenes') {
+      setPaginaActual('trenes');
     }
   }, []);
 
