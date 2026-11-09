@@ -17,9 +17,9 @@ import Tablon from './pages/Tablon';
 import Teatro from './pages/Teatro';
 import Noticias from './pages/Noticias';
 import CajaHerramientas from './pages/CajaHerramientas';
-import Gasolineras from './pages/Gasolineras'; // <--- 1. IMPORTACIÓN AÑADIDA
+import Gasolineras from './pages/Gasolineras';
 import TrenesUtrera from './components/TrenesUtrera';
-import { Store, MessageSquare, Home as HomeIcon, Newspaper, Train, Wrench } from 'lucide-react';
+import { Store, MessageSquare, Home as HomeIcon, Newspaper, Train, Wrench, Fuel, Calendar, Compass, Shield } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 
 export default function App() {
@@ -44,7 +44,7 @@ export default function App() {
     }
   }, []);
 
-  const renderizarPagina = () => {
+  const renderizarContenidoPrincipal = () => {
     if (comercioIdUrl && paginaActual === 'panel-comercio') {
       return <PanelComercio comercioId={comercioIdUrl} setPaginaActual={setPaginaActual} />;
     }
@@ -78,14 +78,14 @@ export default function App() {
       case 'caja-herramientas':
         return <CajaHerramientas setPaginaActual={setPaginaActual} />;
       case 'gasolineras':
-        return <Gasolineras setPaginaActual={setPaginaActual} />; // <--- 2. RUTA AÑADIDA
+        return <Gasolineras setPaginaActual={setPaginaActual} />;
       case 'tablon':
         return <Tablon setPaginaActual={setPaginaActual} />;
       case 'admin':
         return <Admin setPaginaActual={setPaginaActual} />;
       case 'trenes':
         return (
-          <div className="max-w-md mx-auto p-4 pb-24">
+          <div className="max-w-md mx-auto p-4 pb-24 lg:max-w-2xl">
             <div className="flex items-center justify-between mb-2 pt-2">
               <button 
                 onClick={() => setPaginaActual('home')}
@@ -105,11 +105,95 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 relative">
-      {renderizarPagina()}
+    <div className="min-h-screen bg-slate-50 relative flex flex-col lg:flex-row">
+      
+      {/* 💻 BARRA LATERAL DE ESCRITORIO (Visible solo en pantallas grandes lg:) */}
+      <aside className="hidden lg:flex lg:w-72 bg-white border-r border-slate-200 flex-col justify-between p-6 shrink-0 sticky top-0 h-screen shadow-sm">
+        <div>
+          {/* Logo y Cabecera */}
+          <div className="flex items-center gap-3 mb-8 cursor-pointer" onClick={() => setPaginaActual('home')}>
+            <div className="w-10 h-10 rounded-xl bg-amber-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+              U
+            </div>
+            <div>
+              <h1 className="font-extrabold text-slate-900 text-lg leading-tight">UTRERAPP</h1>
+              <p className="text-xs text-slate-500 font-medium">Tu guía local digital</p>
+            </div>
+          </div>
 
-      {/* BARRA DE NAVEGACIÓN INFERIOR */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 flex justify-around items-center z-50 shadow-lg max-w-md mx-auto rounded-t-3xl">
+          {/* Menú de Navegación de Escritorio */}
+          <nav className="space-y-1.5">
+            <button 
+              onClick={() => setPaginaActual('home')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'home' ? 'bg-amber-50 text-amber-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <HomeIcon size={18} />
+              <span>Inicio / Portada</span>
+            </button>
+
+            <button 
+              onClick={() => setPaginaActual('market')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'market' || paginaActual === 'hosteleria' ? 'bg-amber-50 text-amber-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <Store size={18} />
+              <span>Guía Comercial</span>
+            </button>
+
+            <button 
+              onClick={() => setPaginaActual('trenes')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'trenes' ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <Train size={18} />
+              <span>Trenes</span>
+            </button>
+
+            <button 
+              onClick={() => setPaginaActual('caja-herramientas')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'caja-herramientas' ? 'bg-amber-50 text-amber-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <Wrench size={18} />
+              <span>Caja de herramientas</span>
+            </button>
+
+            <button 
+              onClick={() => setPaginaActual('gasolineras')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'gasolineras' ? 'bg-amber-50 text-amber-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <Fuel size={18} />
+              <span>Gasolineras</span>
+            </button>
+
+            <button 
+              onClick={() => setPaginaActual('teatro')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'teatro' ? 'bg-amber-50 text-amber-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <Calendar size={18} />
+              <span>Eventos (Teatro / Fiestas)</span>
+            </button>
+
+            <button 
+              onClick={() => setPaginaActual('conso')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${paginaActual === 'conso' ? 'bg-rose-50 text-rose-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <MessageSquare size={18} />
+              <span>Conso IA</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Pie de la barra lateral PC */}
+        <div className="pt-4 border-t border-slate-100 text-xs text-slate-400 text-center">
+          Utrerapp v2.0 • Escritorio & Móvil
+        </div>
+      </aside>
+
+      {/* 📱 CONTENIDO PRINCIPAL */}
+      <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto">
+        {renderizarContenidoPrincipal()}
+      </main>
+
+      {/* 📱 BARRA DE NAVEGACIÓN INFERIOR (Solo visible en móviles / oculta en lg:) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 flex justify-around items-center z-50 shadow-lg max-w-md mx-auto rounded-t-3xl lg:hidden">
         <button 
           onClick={() => setPaginaActual('home')}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${paginaActual === 'home' ? 'text-amber-600 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
