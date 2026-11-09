@@ -118,64 +118,145 @@ export default function TrenesUtrera() {
             </div>
 
             {/* VISTA SALIDAS */}
-            {vistaActiva === 'salidas' && proximoSevilla && (
+            {vistaActiva === 'salidas' && (
                 <div className="space-y-4">
-                    <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-2.5 h-full bg-sky-600"></div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-extrabold text-slate-900 text-lg">📍 Hacia Sevilla / Lora</h3>
-                            <span className="text-xs bg-sky-100 text-sky-900 px-3 py-1 rounded-full font-bold">Cercanías C1</span>
-                        </div>
-
-                        <div className="bg-sky-50/60 rounded-2xl p-5 border border-sky-200/80 mb-4 shadow-sm">
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <span className="text-xs text-slate-500 font-semibold block">Próximo servicio en directo</span>
-                                    <h4 className="text-xl font-black text-slate-900">{proximoSevilla.destino}</h4>
-                                    <span className="text-xs text-slate-600 font-medium">Salida oficial: {String(proximoSevilla.h).padStart(2, '0')}:{String(proximoSevilla.m).padStart(2, '0')}</span>
-                                </div>
-                                <span className={`text-xs px-3 py-1 rounded-full font-bold ${proximoSevilla.retrasoMin > 0 ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                                    {proximoSevilla.estado}
-                                </span>
+                    {/* SECCIÓN SEVILLA / LORA */}
+                    {proximoSevilla && (
+                        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-2.5 h-full bg-sky-600"></div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-extrabold text-slate-900 text-lg">📍 Hacia Sevilla / Lora</h3>
+                                <span className="text-xs bg-sky-100 text-sky-900 px-3 py-1 rounded-full font-bold">Cercanías C1</span>
                             </div>
 
-                            <div className="my-3 py-3 border-y border-sky-200/60 flex items-baseline justify-between">
-                                <div>
-                                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{minSevilla}</span>
-                                    <span className="text-sm font-bold text-slate-600 ml-1">min</span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[11px] text-slate-500 block font-medium">Vía asignada</span>
-                                    <span className="text-sm font-bold text-sky-900">{proximoSevilla.via}</span>
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={() => compartirWhatsApp("hacia", proximoSevilla.destino, `${proximoSevilla.h}:${proximoSevilla.m}`, "Sale en breve")}
-                                className="w-full mt-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition shadow flex items-center justify-center gap-1.5"
-                            >
-                                💬 Avisa a quien vaya contigo
-                            </button>
-                        </div>
-
-                        {/* DESPUÉS */}
-                        <div className="mt-4 pt-3 border-t border-slate-100">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Después</span>
-                            <div className="space-y-2">
-                                {siguientesSevilla.map((t, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 text-xs border border-slate-100">
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-extrabold text-slate-900 text-sm">{String(t.h).padStart(2, '0')}:{String(t.m).padStart(2, '0')}</span>
-                                            <span className="font-bold text-slate-800">{t.destino}</span>
-                                        </div>
-                                        <span className={`px-2.5 py-1 rounded-full font-bold ${t.retrasoMin > 0 ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-700'}`}>
-                                            {t.estado}
-                                        </span>
+                            <div className="bg-sky-50/60 rounded-2xl p-5 border border-sky-200/80 mb-4 shadow-sm">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <span className="text-xs text-slate-500 font-semibold block">Próximo servicio en directo</span>
+                                        <h4 className="text-xl font-black text-slate-900">{proximoSevilla.destino}</h4>
+                                        <span className="text-xs text-slate-600 font-medium">Salida oficial: {String(proximoSevilla.h).padStart(2, '0')}:{String(proximoSevilla.m).padStart(2, '0')}</span>
                                     </div>
-                                ))}
+                                    <span className={`text-xs px-3 py-1 rounded-full font-bold ${proximoSevilla.retrasoMin > 0 ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                                        {proximoSevilla.estado}
+                                    </span>
+                                </div>
+
+                                <div className="my-3 py-3 border-y border-sky-200/60 flex items-baseline justify-between">
+                                    <div>
+                                        <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{minSevilla}</span>
+                                        <span className="text-sm font-bold text-slate-600 ml-1">min</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[11px] text-slate-500 block font-medium">Vía asignada</span>
+                                        <span className="text-sm font-bold text-sky-900">{proximoSevilla.via}</span>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => compartirWhatsApp("hacia", proximoSevilla.destino, `${proximoSevilla.h}:${proximoSevilla.m}`, "Sale en breve")}
+                                    className="w-full mt-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition shadow flex items-center justify-center gap-1.5"
+                                >
+                                    💬 Avisa a quien vaya contigo
+                                </button>
+                            </div>
+
+                            {/* DESPUÉS SEVILLA */}
+                            {siguientesSevilla.length > 0 && (
+                                <div className="mt-4 pt-3 border-t border-slate-100">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Después</span>
+                                    <div className="space-y-2">
+                                        {siguientesSevilla.map((t, idx) => (
+                                            <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 text-xs border border-slate-100">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-extrabold text-slate-900 text-sm">{String(t.h).padStart(2, '0')}:{String(t.m).padStart(2, '0')}</span>
+                                                    <span className="font-bold text-slate-800">{t.destino}</span>
+                                                </div>
+                                                <span className={`px-2.5 py-1 rounded-full font-bold ${t.retrasoMin > 0 ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-700'}`}>
+                                                    {t.estado}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* SECCIÓN LEBRIJA / CÁDIZ */}
+                    {proximoCadiz && (
+                        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-2.5 h-full bg-blue-600"></div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-extrabold text-slate-900 text-lg">📍 Hacia Lebrija y Cádiz</h3>
+                                <span className="text-xs bg-blue-100 text-blue-900 px-3 py-1 rounded-full font-bold">Media Distancia / C1</span>
+                            </div>
+
+                            <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-200/80 mb-4 shadow-sm">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <span className="text-xs text-slate-500 font-semibold block">Próximo servicio</span>
+                                        <h4 className="text-xl font-black text-slate-900">{proximoCadiz.destino}</h4>
+                                        <span className="text-xs text-slate-600 font-medium">Salida oficial: {String(proximoCadiz.h).padStart(2, '0')}:{String(proximoCadiz.m).padStart(2, '0')}</span>
+                                    </div>
+                                    <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">{proximoCadiz.estado}</span>
+                                </div>
+
+                                <div className="my-3 py-3 border-y border-blue-200/60 flex items-baseline justify-between">
+                                    <div>
+                                        <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{minCadiz}</span>
+                                        <span className="text-sm font-bold text-slate-600 ml-1">min</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[11px] text-slate-500 block font-medium">Vía asignada</span>
+                                        <span className="text-sm font-bold text-blue-900">{proximoCadiz.via}</span>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => compartirWhatsApp("hacia", proximoCadiz.destino, `${proximoCadiz.h}:${proximoCadiz.m}`, "Llega en breve")}
+                                    className="w-full mt-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition shadow flex items-center justify-center gap-1.5"
+                                >
+                                    💬 Avisar
+                                </button>
                             </div>
                         </div>
-                    </div>
+                    )}
+                </div>
+            )}
+
+            {/* VISTA LLEGADAS */}
+            {vistaActiva === 'llegadas' && datosTrenes && datosTrenes.llegadasUtrera && (
+                <div className="space-y-4">
+                    {datosTrenes.llegadasUtrera.map((llegada, idx) => (
+                        <div key={idx} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-2.5 h-full bg-emerald-600"></div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-extrabold text-slate-900 text-lg">📥 Llegadas a Utrera</h3>
+                                <span className="text-xs bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full font-bold">C1 / Regional</span>
+                            </div>
+
+                            <div className="bg-emerald-50/60 rounded-2xl p-5 border border-emerald-200/80 mb-4 shadow-sm">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <span className="text-xs text-slate-500 font-semibold block">Procedencia</span>
+                                        <h4 className="text-xl font-black text-slate-900">{llegada.origen}</h4>
+                                        <span className="text-xs text-slate-600 font-medium">Hora prevista: {String(llegada.h).padStart(2, '0')}:{String(llegada.m).padStart(2, '0')}</span>
+                                    </div>
+                                    <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">{llegada.estado}</span>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2">
+                                    <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-bold">🚆 {llegada.via}</span>
+                                    <button 
+                                        onClick={() => compartirWhatsApp("con destino a", "Utrera (desde " + llegada.origen + ")", `${llegada.h}:${llegada.m}`, "Llega en breve")}
+                                        className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
+                                    >
+                                        💬 Avisa a quien vaya contigo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
