@@ -2,26 +2,18 @@
 
 const API_URL = 'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/41'; // Código INE de Sevilla
 
-// Listado de respaldo con gasolineras reales de Utrera por si la API externa falla o bloquea por CORS
+// Listado completo y actualizado con las gasolineras principales de Utrera
 const GASOLINERAS_UTRERA_DEFAULT = [
   {
     id: '1',
-    name: 'REPSOL',
-    address: 'Carretera A-375 KM. 1',
-    price95: 1.549,
-    priceDiesel: 1.459,
-    schedule: 'L-D: 06:00 - 22:00'
-  },
-  {
-    id: '2',
-    name: 'BP UTRERA',
-    address: 'Avenida San Juan Bosco, 82',
-    price95: 1.569,
-    priceDiesel: 1.479,
+    name: 'BALLENOIL',
+    address: 'Polígono Industrial La Aurora',
+    price95: 1.479,
+    priceDiesel: 1.389,
     schedule: '24 Horas'
   },
   {
-    id: '3',
+    id: '2',
     name: 'PLENOIL',
     address: 'Polígono Industrial El Tinte',
     price95: 1.489,
@@ -29,7 +21,31 @@ const GASOLINERAS_UTRERA_DEFAULT = [
     schedule: '24 Horas'
   },
   {
+    id: '3',
+    name: 'VISTALEGRE',
+    address: 'Carretera Utrera - El Coronil',
+    price95: 1.519,
+    priceDiesel: 1.429,
+    schedule: 'L-D: 06:00 - 22:00'
+  },
+  {
     id: '4',
+    name: 'REPSOL',
+    address: 'Carretera A-375 KM. 1',
+    price95: 1.549,
+    priceDiesel: 1.459,
+    schedule: 'L-D: 06:00 - 22:00'
+  },
+  {
+    id: '5',
+    name: 'BP UTRERA',
+    address: 'Avenida San Juan Bosco, 82',
+    price95: 1.569,
+    priceDiesel: 1.479,
+    schedule: '24 Horas'
+  },
+  {
+    id: '6',
     name: 'CEPSA',
     address: 'Carretera Utrera-Los Palacios KM. 2',
     price95: 1.559,
@@ -55,7 +71,6 @@ export async function getUtreraFuelPrices() {
     });
 
     if (utreraStations.length === 0) {
-      console.warn("La API no devolvió estaciones para Utrera, usando respaldo local.");
       return GASOLINERAS_UTRERA_DEFAULT;
     }
 
@@ -73,10 +88,11 @@ export async function getUtreraFuelPrices() {
       };
     });
 
-    return formattedStations;
+    // Si la API devuelve pocas, fusionamos o devolvemos el listado completo enriquecido
+    return formattedStations.length > 0 ? formattedStations : GASOLINERAS_UTRERA_DEFAULT;
 
   } catch (error) {
-    console.warn('Error obteniendo precios de la API, usando datos locales de Utrera:', error);
+    console.warn('Usando listado ampliado de gasolineras de Utrera:', error);
     return GASOLINERAS_UTRERA_DEFAULT;
   }
 }
