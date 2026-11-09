@@ -1,6 +1,6 @@
 // frontend/src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
-import { Search, MapPin, Pill, Building2, HeartPulse, Stethoscope, CalendarDays, Landmark, UtensilsCrossed, Newspaper, Wrench } from "lucide-react";
+import { Search, MapPin, Pill, Building2, HeartPulse, Stethoscope, CalendarDays, Landmark, UtensilsCrossed, Newspaper, Wrench, Fuel } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function Home({ setPaginaActual, setTab }) {
@@ -344,10 +344,11 @@ export default function Home({ setPaginaActual, setTab }) {
             </div>
           </button>
 
+          {/* GASTRONOMÍA (Mitad Izquierda) */}
           <button 
             type="button"
             onClick={(e) => cambiarPestana(e, "hosteleria")}
-            className="bg-gradient-to-br from-orange-600 to-red-600 p-3.5 rounded-2xl text-white shadow-md flex items-center gap-3 text-left border border-orange-500/40 active:scale-[0.98] transition-transform col-span-2 cursor-pointer"
+            className="bg-gradient-to-br from-orange-600 to-red-600 p-3.5 rounded-2xl text-white shadow-md flex items-center gap-3 text-left border border-orange-500/40 active:scale-[0.98] transition-transform cursor-pointer"
           >
             <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner flex-shrink-0">
               <UtensilsCrossed size={18} />
@@ -355,6 +356,21 @@ export default function Home({ setPaginaActual, setTab }) {
             <div className="min-w-0">
               <p className="text-[9px] uppercase font-black text-orange-200 tracking-wider">Gastronomía</p>
               <h3 className="font-extrabold text-xs leading-tight truncate">Bares, Tapas y Copas</h3>
+            </div>
+          </button>
+
+          {/* COMBUSTIBLE / GASOLINERAS (Mitad Derecha) */}
+          <button 
+            type="button"
+            onClick={(e) => cambiarPestana(e, "gasolineras")}
+            className="bg-gradient-to-br from-blue-600 to-cyan-700 p-3.5 rounded-2xl text-white shadow-md flex items-center gap-3 text-left border border-blue-500/40 active:scale-[0.98] transition-transform cursor-pointer"
+          >
+            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner flex-shrink-0">
+              <Fuel size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] uppercase font-black text-blue-200 tracking-wider">Ahorro</p>
+              <h3 className="font-extrabold text-xs leading-tight truncate">Precios Gasolineras</h3>
             </div>
           </button>
         </div>
