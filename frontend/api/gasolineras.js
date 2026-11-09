@@ -1,7 +1,6 @@
 /**
  * Módulo de Gasolineras para Utrerapp
- * Consulta los precios en tiempo real de Utrera desde la API oficial del Ministerio
- * Evita problemas de caché con cache: 'no-store'
+ * Descarga las estaciones de Sevilla y filtra por Utrera para evitar fallos de códigos INE
  */
 
 async function cargarPreciosGasolineras() {
@@ -11,9 +10,8 @@ async function cargarPreciosGasolineras() {
   try {
     container.innerHTML = '<div class="loading-spinner">Actualizando precios de gasolineras...</div>';
 
-    // Llamada a la API oficial del Ministerio para Utrera (Filtro Municipio: 3095)
-    // cache: 'no-store' obliga al navegador a descargar siempre los datos frescos del día
-    const respuesta = await fetch('https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroMunicipio/3095', {
+    // Usamos el endpoint de toda la provincia de Sevilla para filtrar localmente por Utrera
+    const respuesta = await fetch('https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/41', {
       cache: 'no-store'
     });
     
@@ -22,14 +20,25 @@ async function cargarPreciosGasolineras() {
     }
 
     const datos = await respuesta.json();
-    const estaciones = datos.ListaEstacionesServicio;
+    const todasLasEstaciones = datos.ListaEstacionesServicio;
 
-    if (!estaciones || estaciones.length === 0) {
-      container.innerHTML = '<p class="error-msg">No se encontraron estaciones de servicio disponibles en este momento.</p>';
+    if (!todasLasEstaciones || todasLasEstaciones.length === 0) {
+      container.innerHTML = '<p class="error-msg">No se pudieron cargar los datos de las estaciones.</p>';
       return;
     }
 
-    renderizarTarjetas(estaciones);
+    // Filtramos estrictamente las que pertenezcan a Utrera
+    const estacionesUtrera = todasLasEstaciones.filter(estacion => {
+      const municipio = (estacion['Municipio'] || '').toUpperCase();
+      return municipio.includes('UTRERA');
+    });
+
+    if (estacionesUtrera.length === 0) {
+      container.innerHTML = '<p class="error-msg">No se han encontrado estaciones de servicio activas en Utrera en este momento.</p>';
+      return;
+    }
+
+    renderizarTarjetas(estacionesUtrera);
 
   } catch (error) {
     console.error("Error al cargar los precios de las gasolineras:", error);
