@@ -1,6 +1,6 @@
 /**
- * Módulo de Gasolineras para Utrerapp
- * Descarga las estaciones de Sevilla y filtra por Utrera para evitar fallos de códigos INE
+- Módulo de Gasolineras para Utrerapp
+- Descarga las estaciones de Sevilla y filtra por Utrera para evitar fallos de códigos INE
  */
 
 async function cargarPreciosGasolineras() {
@@ -38,6 +38,13 @@ async function cargarPreciosGasolineras() {
       return;
     }
 
+    // Ordenar de más barata a más cara según Gasolina 95 (manejando comas y valores vacíos)
+    estacionesUtrera.sort((a, b) => {
+      const pA = parseFloat((a['Precio Gasolina 95 E5'] || '999').replace(',', '.')) || 999;
+      const pB = parseFloat((b['Precio Gasolina 95 E5'] || '999').replace(',', '.')) || 999;
+      return pA - pB;
+    });
+
     renderizarTarjetas(estacionesUtrera);
 
   } catch (error) {
@@ -53,8 +60,13 @@ function renderizarTarjetas(estaciones) {
   estaciones.forEach(estacion => {
     const rotulo = estacion['Rótulo'] || 'Gasolinera';
     const direccion = estacion['Dirección'] || '';
-    const precio95 = estacion['Precio Gasolina 95 E5'] ? estacion['Precio Gasolina 95 E5'] + ' €/L' : 'No disponible';
-    const precioDiesel = estacion['Precio Dísel A'] ? estacion['Precio Dísel A'] + ' €/L' : 'No disponible';
+    
+    // Corregido el nombre de la clave de la API del Ministerio (sin tilde / clave exacta)
+    const rawPrecio95 = estacion['Precio Gasolina 95 E5'];
+    const rawPrecioDiesel = estacion['Precio Diésel A'] || estacion['Precio Diesel A'];
+
+    const precio95 = rawPrecio95 ? rawPrecio95 + ' €/L' : 'No disponible';
+    const precioDiesel = rawPrecioDiesel ? rawPrecioDiesel + ' €/L' : 'No disponible';
     
     const card = document.createElement('div');
     card.className = 'gas-card';
