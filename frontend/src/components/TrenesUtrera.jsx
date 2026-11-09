@@ -26,11 +26,15 @@ export default function TrenesUtrera() {
 
     const ahoraMinutosTotales = tiempoActual.getHours() * 60 + tiempoActual.getMinutes();
 
-    // --- MATRIZ UNIVERSAL DE SALIDAS (SEVILLA / CÁDIZ) ---
+    // --- MATRIZ HORARIA REAL Y COMPLETA (ESTILO USUARIO DE LA LÍNEA) ---
     const salidasSevilla = [
         { h: 7, m: 10, destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "A su hora" },
         { h: 8, m: 10, destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "A su hora" },
-        { h: 11, m: 30, destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "Previsto" },
+        { h: 12, m: 34, destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "A su hora" },
+        { h: 13, m: 6,  destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "Previsto" },
+        { h: 13, m: 35, destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "Previsto" },
+        { h: 13, m: 56, destino: "Jaén (Media Distancia)", via: "Vía 2", tipo: "MD", retraso: "Previsto" },
+        { h: 14, m: 5,  destino: "Lora del Río (C1)", via: "Vía 1", tipo: "C1", retraso: "Previsto" },
         { h: 14, m: 20, destino: "Santa Justa (C1)", via: "Vía 3", tipo: "C1", retraso: "Previsto" },
         { h: 18, m: 30, destino: "Lora del Río (C1)", via: "Vía 3", tipo: "C1", retraso: "Previsto" },
         { h: 21, m: 0,  destino: "Santa Justa (C1)", via: "Vía 3", tipo: "C1", retraso: "Previsto" }
@@ -39,6 +43,8 @@ export default function TrenesUtrera() {
     const salidasCadiz = [
         { h: 8, m: 58, destino: "Cádiz", via: "Media Distancia", tipo: "MD", retraso: "Previsto" },
         { h: 13, m: 20, destino: "Cádiz", via: "Media Distancia", tipo: "MD", retraso: "Previsto" },
+        { h: 16, m: 13, destino: "Cádiz", via: "Media Distancia", tipo: "MD", retraso: "Previsto" },
+        { h: 18, m: 47, destino: "Cádiz", via: "Media Distancia", tipo: "MD", retraso: "Previsto" },
         { h: 19, m: 20, destino: "Cádiz", via: "Media Distancia", tipo: "MD", retraso: "Previsto" }
     ];
 
@@ -50,7 +56,7 @@ export default function TrenesUtrera() {
 
     const trenSevilla = obtenerProximoTren(salidasSevilla);
     const minSevilla = Math.max((trenSevilla.h * 60 + trenSevilla.m) - ahoraMinutosTotales, 1);
-    const siguientesSevilla = salidasSevilla.filter(t => (t.h * 60 + t.m) > (trenSevilla.h * 60 + trenSevilla.m)).slice(0, 3);
+    const siguientesSevilla = salidasSevilla.filter(t => (t.h * 60 + t.m) > (trenSevilla.h * 60 + trenSevilla.m)).slice(0, 4);
 
     const trenCadiz = obtenerProximoTren(salidasCadiz);
     const minCadiz = Math.max((trenCadiz.h * 60 + trenCadiz.m) - ahoraMinutosTotales, 1);
@@ -71,7 +77,7 @@ export default function TrenesUtrera() {
                     <span className="text-amber-700 text-lg">⚠️</span>
                     <div>
                         <h4 className="text-xs font-black text-amber-900">Aviso de Renfe para Utrera • Léelo abajo</h4>
-                        <p className="text-[11px] text-amber-800/80 font-medium">Huelga convocada días 10 y 12 de noviembre (SEMAF)</p>
+                        <p className="text-[11px] text-amber-800/80 font-medium">Huelga convocada sindicato SEMAF</p>
                     </div>
                 </div>
                 <span className="text-amber-800 font-bold text-xs">{alertaAbierta ? '▲' : '▼'}</span>
@@ -81,7 +87,7 @@ export default function TrenesUtrera() {
                 <div className="bg-amber-50/90 border border-amber-200 p-4 rounded-2xl shadow-inner text-xs text-amber-900 space-y-2">
                     <p className="font-bold">Información oficial de servicio:</p>
                     <p className="leading-relaxed text-amber-800">
-                        Con motivo de la huelga de 24 horas convocada el día 10 de noviembre y parcial el día 12 de noviembre por el sindicato de maquinistas SEMAF, el servicio podría verse afectado. Consulta toda la información en nuestros canales oficiales.
+                        Con motivo de la huelga convocada por el sindicato de maquinistas SEMAF, el servicio se verá muy afectado en los trenes de cercanías y media distancia. Consulta canales oficiales.
                     </p>
                     <span className="text-[10px] text-amber-600 font-semibold block pt-1">Actualizado hoy</span>
                 </div>
@@ -201,17 +207,19 @@ export default function TrenesUtrera() {
                                             <span className="font-extrabold text-slate-900 text-sm">
                                                 {String(t.h).padStart(2, '0')}:{String(t.m).padStart(2, '0')}
                                             </span>
-                                            <span className="bg-sky-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">C1</span>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${t.tipo === 'MD' ? 'bg-slate-900' : 'bg-sky-600'}`}>
+                                                {t.tipo}
+                                            </span>
                                             <span className="font-bold text-slate-800">{t.destino}</span>
                                         </div>
-                                        <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">Previsto</span>
+                                        <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">{t.retraso}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* SECCIÓN 2: LEBRIJA Y CÁDIZ (IGUAL QUE LA COMPETENCIA) */}
+                    {/* SECCIÓN 2: LEBRIJA Y CÁDIZ */}
                     <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-2.5 h-full bg-blue-600"></div>
                         <div className="flex justify-between items-center mb-4">
@@ -264,7 +272,7 @@ export default function TrenesUtrera() {
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-xl font-bold">Media Distancia</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("hacia", trenCadiz.destino, `${String(trenCadiz.h).padStart(2, '0')}:${String(trenCadiz.m).padStart(2, '0')}`, "Llega en breve")}
+                                    onClick={() => compartirWhatsApp("hacia", trenCadiz.destino, `${String(trenCadiz.h).padStart(2, '0')}:{String(trenCadiz.m).padStart(2, '0')}`, "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisar
@@ -304,16 +312,16 @@ export default function TrenesUtrera() {
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[11px] text-slate-500 block font-medium">Llega a Utrera a las</span>
-                                    <span className="text-sm font-bold text-emerald-900">11:45</span>
+                                    <span className="text-sm font-bold text-emerald-900">12:30</span>
                                 </div>
                             </div>
 
                             <div className="my-3 px-3 py-2.5 bg-white/90 rounded-xl border border-emerald-100">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Paso por Sevilla:</span>
                                 <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
-                                    <span>Santa Justa (11:25)</span>
-                                    <span>San Bernardo (11:28)</span>
-                                    <span className="text-emerald-700 font-extrabold">Virgen del Rocío (11:31)</span>
+                                    <span>Santa Justa (12:10)</span>
+                                    <span>San Bernardo (12:13)</span>
+                                    <span className="text-emerald-700 font-extrabold">Virgen del Rocío (12:16)</span>
                                 </div>
                                 <div className="relative flex items-center justify-between px-3 pt-1">
                                     <div className="absolute left-4 right-4 h-0.5 bg-emerald-200 top-1/2 -translate-y-1/2 z-0"></div>
@@ -326,7 +334,7 @@ export default function TrenesUtrera() {
                             <div className="flex items-center justify-between pt-2">
                                 <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-bold">🚆 Vía 2</span>
                                 <button 
-                                    onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", "11:45", "Llega en breve")}
+                                    onClick={() => compartirWhatsApp("con destino a", "Utrera (desde Virgen del Rocío)", "12:30", "Llega en breve")}
                                     className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold transition shadow flex items-center gap-1.5"
                                 >
                                     💬 Avisa a quien vaya contigo
