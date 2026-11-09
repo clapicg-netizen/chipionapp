@@ -1,96 +1,21 @@
-// src/lib/fuelService.js
-
-const API_URL = 'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/41'; // Código INE de Sevilla
-
-// Listado completo con las gasolineras reales de Utrera y precios ajustados de mercado
-const GASOLINERAS_UTRERA_DEFAULT = [
-  {
-    id: '1',
-    name: 'BALLENOIL',
-    address: 'Polígono Industrial La Aurora',
-    price95: 1.429,
-    priceDiesel: 1.349,
-    schedule: '24 Horas'
-  },
-  {
-    id: '2',
-    name: 'PLENOIL',
-    address: 'Polígono Industrial El Tinte',
-    price95: 1.439,
-    priceDiesel: 1.359,
-    schedule: '24 Horas'
-  },
-  {
-    id: '3',
-    name: 'VISTALEGRE',
-    address: 'Carretera Utrera - El Coronil',
-    price95: 1.469,
-    priceDiesel: 1.389,
-    schedule: 'L-D: 06:00 - 22:00'
-  },
-  {
-    id: '4',
-    name: 'REPSOL',
-    address: 'Carretera A-375 KM. 1',
-    price95: 1.519,
-    priceDiesel: 1.439,
-    schedule: 'L-D: 06:00 - 22:00'
-  },
-  {
-    id: '5',
-    name: 'BP UTRERA',
-    address: 'Avenida San Juan Bosco, 82',
-    price95: 1.539,
-    priceDiesel: 1.459,
-    schedule: '24 Horas'
-  },
-  {
-    id: '6',
-    name: 'CEPSA',
-    address: 'Carretera Utrera-Los Palacios KM. 2',
-    price95: 1.529,
-    priceDiesel: 1.449,
-    schedule: 'L-S: 07:00 - 23:00'
-  }
-];
+// frontend/src/lib/fuelService.js
 
 export async function getUtreraFuelPrices() {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch('/api/gasolineras');
     if (!response.ok) {
-      throw new Error('Error al conectar con el servicio de gasolineras');
+      throw new Error('Error al conectar con la pasarela de Utrerapp');
     }
-    
+
     const data = await response.json();
-    const stations = data.ListaEchEESS || data.ListaEstaService || [];
     
-    const utreraStations = stations.filter(station => {
-      const municipio = station.Municipio || station.MUNICIPIO || '';
-      return municipio.toUpperCase().includes('UTRERA');
-    });
-
-    if (utreraStations.length === 0) {
-      return GASOLINERAS_UTRERA_DEFAULT;
+    if (data.success && data.stations) {
+      return data.stations;
     }
 
-    const formattedStations = utreraStations.map(station => {
-      const p95 = station['Precio Gasolina 95 E5'] || station['Precio Gasolina 95 E10'] || station['Precio Gasolina 95 E5 Protecida'];
-      const pDiesel = station['Precio Gasoleo A'] || station['Precio Gasóleo A'] || station['Precio Petroleo A'];
-
-      return {
-        id: station.IDElem || Math.random().toString(),
-        name: station['Rótulo'] || station.Rótulo || 'Estación de Servicio',
-        address: station['Dirección'] || station.Direccion || 'Utrera',
-        price95: p95 ? parseFloat(p95.replace(',', '.')) : 1.469,
-        priceDiesel: pDiesel ? parseFloat(pDiesel.replace(',', '.')) : 1.389,
-        schedule: station['Horario'] || station.Horario || 'L-D: 07:00 - 23:00'
-      };
-    });
-
-    return formattedStations.length > 0 ? formattedStations : GASOLINERAS_UTRERA_DEFAULT;
-
+    return [];
   } catch (error) {
-    console.warn('Usando listado con precios ajustados de Utrera:', error);
-    return GASOLINERAS_UTRERA_DEFAULT;
+    console.error('Error obteniendo precios reales:', error);
+    return [];
   }
 }
