@@ -1,6 +1,6 @@
 // frontend/src/components/GasolinerasWidget.jsx
 import React, { useState, useEffect } from 'react';
-import { MapPin, ExternalLink, Fuel, AlertCircle } from 'lucide-react';
+import { MapPin, ExternalLink, AlertCircle } from 'lucide-react';
 
 export default function GasolinerasWidget() {
   const [estaciones, setEstaciones] = useState([]);
@@ -10,9 +10,9 @@ export default function GasolinerasWidget() {
   useEffect(() => {
     async function cargarPreciosUtrera() {
       try {
-        // Llamada oficial a la API del Ministerio para la provincia de Sevilla
+        // Endpoint oficial directo para Utrera (Código INE: 3095)
         const respuesta = await fetch(
-          'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/41',
+          'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroMunicipio/3095',
           { cache: 'no-store' }
         );
         
@@ -23,26 +23,18 @@ export default function GasolinerasWidget() {
         const datos = await respuesta.json();
         const lista = datos.ListaEstacionesServicio || [];
 
-        // Filtro estricto por Utrera (municipio o dirección)
-        const filtradas = lista.filter(item => {
-          const municipio = (item['Municipio'] || '').toUpperCase();
-          const direccion = (item['Dirección'] || '').toUpperCase();
-          const cp = item['C.P.'] || '';
-          return municipio.includes('UTRERA') || direccion.includes('UTRERA') || cp === '41710';
-        });
-
-        if (filtradas.length === 0) {
+        if (lista.length === 0) {
           setEstaciones([]);
           setCargando(false);
           return;
         }
 
         // Mapear y limpiar los datos de cada estación
-        const procesadas = filtradas.map(item => ({
+        const procesadas = lista.map(item => ({
           nombre: item['Rótulo'] || 'Estación de Servicio',
           direccion: item['Dirección'] || 'Utrera',
           precioG95: parseFloat((item['Precio Gasolina 95 E5'] || '999').replace(',', '.')) || 999,
-          precioDiesel: parseFloat((item['Precio Diésel A'] || item['Precio Diesel A'] || '999').replace(',', '.')) || 999,
+          precioDiesel: parseFloat((item['Precio Dísel A'] || item['Precio Diésel A'] || item['Precio Diesel A'] || '999').replace(',', '.')) || 999,
           lat: (item['Latitud (WGS84)'] || '').replace(',', '.'),
           lon: (item['Longitud (WGS84)'] || '').replace(',', '.')
         }));
@@ -91,7 +83,6 @@ export default function GasolinerasWidget() {
 
   return (
     <div className="space-y-3">
-      {/* Tarjeta superior con el mínimo de Utrera */}
       {precioMinimoG95 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-4 shadow-sm flex items-center justify-between">
           <div>
@@ -105,7 +96,6 @@ export default function GasolinerasWidget() {
         </div>
       )}
 
-      {/* Listado ordenado de gasolineras */}
       {estaciones.map((est, index) => (
         <div key={index} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
           <div className="flex justify-between items-start mb-2">
