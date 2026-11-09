@@ -17,6 +17,7 @@ import Tablon from './pages/Tablon';
 import Teatro from './pages/Teatro';
 import Noticias from './pages/Noticias';
 import CajaHerramientas from './pages/CajaHerramientas';
+import Gasolineras from './pages/Gasolineras'; // <--- 1. IMPORTACIÓN AÑADIDA
 import TrenesUtrera from './components/TrenesUtrera';
 import { Store, MessageSquare, Home as HomeIcon, Newspaper, Train, Wrench } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
@@ -76,6 +77,8 @@ export default function App() {
         return <Conso setPaginaActual={setPaginaActual} />;
       case 'caja-herramientas':
         return <CajaHerramientas setPaginaActual={setPaginaActual} />;
+      case 'gasolineras':
+        return <Gasolineras setPaginaActual={setPaginaActual} />; // <--- 2. RUTA AÑADIDA
       case 'tablon':
         return <Tablon setPaginaActual={setPaginaActual} />;
       case 'admin':
