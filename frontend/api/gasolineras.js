@@ -1,67 +1,74 @@
-// frontend/api/gasolineras.js
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+/**
+ * Módulo de Gasolineras para Utrerapp
+ * Consulta los precios en tiempo real de Utrera desde la API oficial del Ministerio
+ * Evita problemas de caché con cache: 'no-store'
+ */
 
-  // Listado base de respaldo ultra-fiable con estaciones reales de Utrera
-  const GASOLINERAS_FALLBACK = [
-    { id: '1', name: 'BALLENOIL', address: 'Polígono Industrial La Aurora', price95: 1.429, priceDiesel: 1.349, schedule: '24 Horas' },
-    { id: '2', name: 'PLENOIL', address: 'Polígono Industrial El Tinte', price95: 1.439, priceDiesel: 1.359, schedule: '24 Horas' },
-    { id: '3', name: 'VISTALEGRE', address: 'Carretera Utrera - El Coronil', price95: 1.469, priceDiesel: 1.389, schedule: 'L-D: 06:00 - 22:00' },
-    { id: '4', name: 'REPSOL', address: 'Carretera A-375 KM. 1', price95: 1.519, priceDiesel: 1.439, schedule: 'L-D: 06:00 - 22:00' },
-    { id: '5', name: 'BP UTRERA', address: 'Avenida San Juan Bosco, 82', price95: 1.539, priceDiesel: 1.459, schedule: '24 Horas' },
-    { id: '6', name: 'CEPSA', address: 'Carretera Utrera-Los Palacios KM. 2', price95: 1.529, priceDiesel: 1.449, schedule: 'L-S: 07:00 - 23:00' }
-  ];
+async function cargarPreciosGasolineras() {
+  const container = document.getElementById('gasolineras-container');
+  if (!container) return;
 
   try {
-    const response = await fetch(
-      'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/41',
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-          'Accept': 'application/json'
-        }
-      }
-    );
+    container.innerHTML = '<div class="loading-spinner">Actualizando precios de gasolineras...</div>';
 
-    if (!response.ok) {
-      throw new Error('Error al conectar con la API del Ministerio');
+    // Llamada a la API oficial del Ministerio para Utrera (Filtro Municipio: 3095)
+    // cache: 'no-store' obliga al navegador a descargar siempre los datos frescos del día
+    const respuesta = await fetch('https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroMunicipio/3095', {
+      cache: 'no-store'
+    });
+    
+    if (!respuesta.ok) {
+      throw new Error('Error al conectar con el servicio de precios.');
     }
 
-    const data = await response.json();
-    const stations = data.ListaEchEESS || data.ListaEstaService || [];
+    const datos = await respuesta.json();
+    const estaciones = datos.ListaEstacionesServicio;
 
-    // Filtro flexible para capturar Utrera sin importar mayúsculas o tildes
-    const utreraStations = stations.filter(station => {
-      const municipio = (station.Municipio || station.MUNICIPIO || '').toUpperCase();
-      return municipio.includes('UTRERA');
-    });
-
-    if (utreraStations.length === 0) {
-      // Si la API del Ministerio no devuelve registros de Utrera, usamos el respaldo comercial
-      return res.status(200).json({ success: true, stations: GASOLINERAS_FALLBACK });
+    if (!estaciones || estaciones.length === 0) {
+      container.innerHTML = '<p class="error-msg">No se encontraron estaciones de servicio disponibles en este momento.</p>';
+      return;
     }
 
-    const formattedStations = utreraStations.map(station => {
-      const p95 = station['Precio Gasolina 95 E5'] || station['Precio Gasolina 95 E10'] || station['Precio Gasolina 95 E5 Protecida'] || '';
-      const pDiesel = station['Precio Gasoleo A'] || station['Precio Gasóleo A'] || station['Precio Petroleo A'] || '';
-
-      return {
-        id: station.IDElem || Math.random().toString(),
-        name: (station['Rótulo'] || station.Rótulo || 'Estación de Servicio').trim(),
-        address: (station['Dirección'] || station.Direccion || 'Utrera').trim(),
-        price95: p95 ? parseFloat(p95.replace(',', '.')) : 1.469,
-        priceDiesel: pDiesel ? parseFloat(pDiesel.replace(',', '.')) : 1.389,
-        schedule: (station['Horario'] || station.Horario || 'Consultar en estación').trim()
-      };
-    });
-
-    formattedStations.sort((a, b) => a.price95 - b.price95);
-
-    return res.status(200).json({ success: true, stations: formattedStations });
+    renderizarTarjetas(estaciones);
 
   } catch (error) {
-    console.warn('Usando respaldo seguro de gasolineras:', error.message);
-    return res.status(200).json({ success: true, stations: GASOLINERAS_FALLBACK });
+    console.error("Error al cargar los precios de las gasolineras:", error);
+    container.innerHTML = '<p class="error-msg">Error al cargar los precios actualizados. Comprueba tu conexión.</p>';
   }
 }
+
+function renderizarTarjetas(estaciones) {
+  const container = document.getElementById('gasolineras-container');
+  container.innerHTML = '';
+
+  estaciones.forEach(estacion => {
+    const rotulo = estacion['Rótulo'] || 'Gasolinera';
+    const direccion = estacion['Dirección'] || '';
+    const precio95 = estacion['Precio Gasolina 95 E5'] ? estacion['Precio Gasolina 95 E5'] + ' €/L' : 'No disponible';
+    const precioDiesel = estacion['Precio Dísel A'] ? estacion['Precio Dísel A'] + ' €/L' : 'No disponible';
+    
+    const card = document.createElement('div');
+    card.className = 'gas-card';
+    card.innerHTML = `
+      <div class="gas-header">
+        <h3>${rotulo}</h3>
+        <span class="badge abierta">ACTUALIZADO</span>
+      </div>
+      <p class="gas-address">${direccion}</p>
+      <div class="gas-prices">
+        <div class="price-item">
+          <span class="fuel-label">Gasolina 95 E5</span>
+          <span class="fuel-value">${precio95}</span>
+        </div>
+        <div class="price-item">
+          <span class="fuel-label">Diésel A</span>
+          <span class="fuel-value">${precioDiesel}</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Ejecutar al cargar la vista de gasolineras
+cargarPreciosGasolineras();
